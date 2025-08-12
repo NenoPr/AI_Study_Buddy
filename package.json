@@ -1,0 +1,27 @@
+{
+  "name": "ai_study_buddy",
+  "version": "1.0.0",
+  "description": "AI Studdy Buddy - Project to learn coding, Back end, Frontend, AI integration",
+  "homepage": "https://github.com/NenoPr/AI_Study_Buddy#readme",
+  "bugs": {
+    "url": "https://github.com/NenoPr/AI_Study_Buddy/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NenoPr/AI_Study_Buddy.git"
+  },
+  "license": "MIT",
+  "author": "NenoPr",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10",
+    "pg": "^8.16.3"
+  }
+}
