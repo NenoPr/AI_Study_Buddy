@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function SummarizeNotes({ token }) {
+export default function SummarizeNotes() {
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login"); // redirect to login
+    }
+  }, [navigate])
 
   // ✅ This function is async
   const handleSummarize = async () => {
