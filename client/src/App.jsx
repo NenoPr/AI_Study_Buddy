@@ -7,50 +7,52 @@ import SummarizeNotes from "./components/SummarizeNotes";
 import Navbar from './components/Navbar';
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import Notes from './pages/Notes'
 
 function App() {
   const [count, setCount] = useState(0)
   const [token, setToken] = useState(""); // store JWT from login/signup
   const [loginStatus, setLoginStatus] = useState("");
 
-  const handleLogIn = async (event) => {
-    event.preventDefault()
-    const email = event.target.email1.value
-    const password = event.target.password1.value
-    try {
-      // await is only here, inside the async function
-      const res = await fetch("/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          "email": `${email}`,
-          "password": `${password}`
-        })
-      });
+  // const handleLogIn = async (event) => {
+  //   event.preventDefault()
+  //   const email = event.target.email1.value
+  //   const password = event.target.password1.value
+  //   try {
+  //     // await is only here, inside the async function
+  //     const res = await fetch("/auth/login", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         "email": `${email}`,
+  //         "password": `${password}`
+  //       })
+  //     });
 
-      const data = await res.json();
-      data.token ? setToken(data.token) : setLoginStatus("No user was found with these credentials.")
-    } catch (err) {
-      console.error(err);
-      setSummary("Internal server error.");
-    }
-  }
+  //     const data = await res.json();
+  //     data.token ? setToken(data.token) : setLoginStatus("No user was found with these credentials.")
+  //   } catch (err) {
+  //     console.error(err);
+  //     setSummary("Internal server error.");
+  //   }
+  // }
 
-  function handleLogInTest(event) {
-    console.log(event)
-    event.preventDefault()
-    const email = event.target.email1.value
-    const password = event.target.password1.value
-    console.log(email,password)
-  }
+  // function handleLogInTest(event) {
+  //   console.log(event)
+  //   event.preventDefault()
+  //   const email = event.target.email1.value
+  //   const password = event.target.password1.value
+  //   console.log(email,password)
+  // }
 
   return (
     <main>
       <Navbar />
       <Routes>
         <Route path="/" element={<SummarizeNotes />} />
+        <Route path="/notes" element={<Notes />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>

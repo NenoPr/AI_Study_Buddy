@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/ai': 'http://localhost:5000',
       '/auth': 'http://localhost:5000',
+      '/notes': 'http://localhost:5000',
     }
   }
 })

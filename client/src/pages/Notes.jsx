@@ -2,27 +2,22 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-export default function SummarizeNotes() {
-  const [summary, setSummary] = useState("");
+export default function Login() {
+  const { isLoggedIn, token } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [notes, setNotes] = useState("");
   const navigate = useNavigate();
-
-  const { token, isLoggedIn, logout } = useAuth();
-
-  // const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!isLoggedIn) return navigate("/login");
   }, [navigate]);
 
-  // ✅ This function is async
-  const handleSummarize = async () => {
+  const getNotes = async () => {
     setLoading(true);
-    setSummary("");
 
     try {
       // await is only here, inside the async function
-      const res = await fetch("/ai/summarize", {
+      const res = await fetch("/notes", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -31,10 +26,11 @@ export default function SummarizeNotes() {
       });
 
       const data = await res.json();
-      setSummary(data.summary || "No summary returned.");
+      setNotes(data.notes || "No notes returned.");
+      console.log(notes);
     } catch (err) {
       console.error(err);
-      setSummary("Error summarizing notes.");
+      setNotes("Error summarizing notes.");
     } finally {
       setLoading(false);
     }
@@ -42,24 +38,20 @@ export default function SummarizeNotes() {
 
   return (
     <div>
-      <button onClick={handleSummarize} disabled={loading}>
-        {loading ? "Summarizing..." : "Summarize Notes"}
+      <button onClick={getNotes} disabled={loading}>
+        {loading ? "Fetching notes..." : "Fetch notes"}
       </button>
-      {summary && (
+      {notes && (
         <div style={{ marginTop: "1rem", whiteSpace: "pre-wrap" }}>
-          {summary}
+          {notes.map((item, index) => (
+            <div key={index}>
+              <h4>{item.title}</h4>
+              <p>{item.content}</p>
+            </div>
+          ))}
         </div>
       )}
       <br />
-      <button
-        onClick={() => {
-          logout();
-          console.log("Logout clicked");
-          navigate("/login");
-        }}
-      >
-        Logout
-      </button>
     </div>
   );
 }

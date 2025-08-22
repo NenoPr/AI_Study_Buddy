@@ -6,6 +6,9 @@ export default function Navbar() {
       <Link to="/" style={{ marginRight: "10px" }}>
         Home
       </Link>
+      <Link to="/notes" style={{ marginRight: "10px" }}>
+        Notes
+      </Link>
       <Link to="/login" style={{ marginRight: "10px" }}>
         Login
       </Link>

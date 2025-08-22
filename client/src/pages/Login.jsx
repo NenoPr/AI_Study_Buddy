@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   async function handleLogin(e) {
@@ -17,7 +20,7 @@ export default function Login() {
 
       const data = await res.json();
       if (data.token) {
-        localStorage.setItem("token", data.token); // save JWT
+        login(data.token) // updates the token
         alert("Login Successful!");
         navigate("/");
       } else {

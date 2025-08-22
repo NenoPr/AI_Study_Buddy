@@ -23,19 +23,32 @@ router.post("/", async (req, res) => {
     }
 });
 
-// READ all notes for the Logged-in user
+// READ all notes for the logged-in user
 router.get("/", async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+  
     try {
-        const result = await req.pool.query(
-            "SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at DESC",
-            [req.user.userId]
-        );
-        res.json(result.rows);
+      // Get notes
+      const result = await req.pool.query(
+        "SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+        [req.user.userId, limit, offset]
+      );
+  
+      // Get total count
+      const totalResult = await req.pool.query(
+        "SELECT COUNT(*) FROM notes WHERE user_id = $1",
+        [req.user.userId]
+      );
+      const totalRows = parseInt(totalResult.rows[0].count, 10);
+  
+      res.json({ notes: result.rows, page, limit, totalRows });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Internal server error"})
+      console.error(err);
+      res.status(500).json({ error: "Internal server error" });
     }
-});
+  });
 
 // UPDATE a note by id
 router.put("/:id", async (req, res) => {
