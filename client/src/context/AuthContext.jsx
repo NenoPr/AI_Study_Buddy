@@ -5,6 +5,25 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("checking"); // "checking" | "authed" | "guest"
+  const [user, setUser] = useState(null);
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      if (!res.ok) throw new Error("Not authenticated");
+      const data = await res.json();
+      setUser(data.user);
+      setStatus("authed");
+    } catch {
+      setUser(null);
+      setStatus("guest");
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
@@ -15,17 +34,23 @@ export const AuthProvider = ({ children }) => {
   const login = (newToken) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
+    checkAuth()
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
+  // frontend logout function in AuthContext
+  const logout = async () => {
+    const res = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Login failed");
+    setUser(null);
+    setStatus("guest"); // <-- important: mark as guest
+    setToken(null)
   };
-
-  const isLoggedIn = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, loading, isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ token, login, logout, status, user }}>
       {children}
     </AuthContext.Provider>
   );

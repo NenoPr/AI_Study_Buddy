@@ -1,6 +1,7 @@
 import dotenv from "dotenv"
 dotenv.config();
 import express from "express"
+import cookieParser from "cookie-parser";
 import cors from "cors"
 import pkg from "pg"
 import authRouter from "./routes/auth.mjs"
@@ -16,17 +17,17 @@ if (!process.env.JWT_SECRET) {
   }
 
 const app = express();
+app.use(cookieParser());
 
-app.use(cors());
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use((req, res, next) => {
     req.pool = pool;
     next();
 });
-app.use("/auth", authRouter);
-app.use("/notes", notesRouter);
-app.use("/ai", aiRoutes);
+app.use("/api/auth", authRouter);
+app.use("/api/notes", notesRouter);
+app.use("/api/ai", aiRoutes);
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,

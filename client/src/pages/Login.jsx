@@ -2,27 +2,30 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
 
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       const data = await res.json();
       if (data.token) {
-        login(data.token) // updates the token
+        await login(data.token); // updates the token
         alert("Login Successful!");
+        setLoginSuccess(true)
         navigate("/");
+        console.log("test");
       } else {
         alert(data.error || "Login failed");
       }

@@ -7,13 +7,7 @@ export default function SummarizeNotes() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { token, isLoggedIn, logout } = useAuth();
-
-  // const token = localStorage.getItem("token");
-
-  useEffect(() => {
-    if (!isLoggedIn) return navigate("/login");
-  }, [navigate]);
+  const { token, logout } = useAuth();
 
   // ✅ This function is async
   const handleSummarize = async () => {
@@ -22,12 +16,13 @@ export default function SummarizeNotes() {
 
     try {
       // await is only here, inside the async function
-      const res = await fetch("/ai/summarize", {
+      const res = await fetch("/api/ai/summarize", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include"
       });
 
       const data = await res.json();

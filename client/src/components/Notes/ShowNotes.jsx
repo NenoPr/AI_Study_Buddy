@@ -17,11 +17,12 @@ export default function ShowNotes({ notes, refreshNotes }) {
   const deleteNote = async (e) => {
     try {
       // await is only here, inside the async function
-      const res = await fetch(`/notes/${e.target.id}`, {
+      const res = await fetch(`/api/notes/${e.target.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
-        }
+        },
+        credentials: "include"
       });
     } catch (err) {
       console.error(err);

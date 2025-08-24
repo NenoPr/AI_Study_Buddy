@@ -16,13 +16,14 @@ export default function AddNote({refreshNotes, onNoteAdded}) {
 
     try {
       // await is only here, inside the async function
-      const res = await fetch("/notes", {
+      const res = await fetch("/api/notes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({title, content})
+        body: JSON.stringify({title, content}),
+        credentials: "include"
       });
       const data = await res.json();
       if (data) {

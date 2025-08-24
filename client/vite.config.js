@@ -5,9 +5,21 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/notes": "http://localhost:5000",
-      "/auth": "http://localhost:5000",
-      "/ai": "http://localhost:5000",
+        "/api/notes": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+          secure: false
+        },
+        "/api/auth": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+          secure: false
+        },
+        "/api/ai": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+          secure: false
+        },
     },
   },
 });
