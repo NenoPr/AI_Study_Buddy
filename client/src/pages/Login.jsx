@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,10 +23,9 @@ export default function Login() {
       const data = await res.json();
       if (data.token) {
         await login(data.token); // updates the token
-        alert("Login Successful!");
-        setLoginSuccess(true)
-        navigate("/");
-        console.log("test");
+        // alert("Login Successful!");
+        setLoginSuccess(true);
+        window.location.href = "/";
       } else {
         alert(data.error || "Login failed");
       }

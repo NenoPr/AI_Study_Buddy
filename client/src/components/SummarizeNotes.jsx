@@ -37,6 +37,7 @@ export default function SummarizeNotes() {
 
   return (
     <div>
+      <br />
       <button onClick={handleSummarize} disabled={loading}>
         {loading ? "Summarizing..." : "Summarize Notes"}
       </button>
@@ -46,15 +47,6 @@ export default function SummarizeNotes() {
         </div>
       )}
       <br />
-      <button
-        onClick={() => {
-          logout();
-          console.log("Logout clicked");
-          navigate("/login");
-        }}
-      >
-        Logout
-      </button>
     </div>
   );
 }

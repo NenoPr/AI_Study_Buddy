@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import AddNote from "../components/Notes/AddNote";
 import ShowNotes from "../components/Notes/ShowNotes";
+import "../css/notes.css"
 
 export default function NotesPage() {
   const { token } = useAuth();
@@ -40,7 +41,9 @@ export default function NotesPage() {
 
   return (
     <div>
+      <br />
       <AddNote onNoteAdded={addNoteToState} refreshNotes={fetchNotes} />
+      <br />
       <ShowNotes notes={notes} refreshNotes={fetchNotes} />
     </div>
   );

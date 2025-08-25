@@ -54,6 +54,9 @@ router.get("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
     const { title, content } = req.body;
     const { id } = req.params;
+    console.log("req.body:", req.body);
+    console.log("req.params:", req.params);
+    console.log("req.user:", req.user);
     try {
         const result = await req.pool.query(
             "UPDATE notes SET title=$1, content=$2, updated_at=NOW() WHERE id=$3 AND user_id=$4 RETURNING *",
