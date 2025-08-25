@@ -44,7 +44,8 @@ export default function NotesPage() {
       <br />
       <AddNote onNoteAdded={addNoteToState} refreshNotes={fetchNotes} />
       <br />
-      <ShowNotes notes={notes} refreshNotes={fetchNotes} />
+      <ShowNotes notes={notes} refreshNotes={fetchNotes} onNoteAdded={addNoteToState} />
+      <br />
     </div>
   );
 }

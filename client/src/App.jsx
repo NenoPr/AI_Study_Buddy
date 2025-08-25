@@ -2,7 +2,7 @@ import "./App.css";
 import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
-import SummarizeNotes from "./components/SummarizeNotes";
+import SummarizeNotes from "./components/AIHome.jsx";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";

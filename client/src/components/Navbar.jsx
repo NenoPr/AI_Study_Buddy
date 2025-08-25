@@ -11,7 +11,7 @@ export default function Navbar() {
   return (
     <nav style={{ padding: "10px", background: "#eee" }}>
       <Link to="/" style={{ marginRight: "10px" }}>
-        Home
+        AI
       </Link>
       <Link to="/notes" style={{ marginRight: "10px" }}>
         Notes

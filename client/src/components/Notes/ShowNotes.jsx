@@ -37,7 +37,7 @@ export default function ShowNotes({ notes, refreshNotes }) {
     } catch (err) {
       console.error(err);
     } finally {
-      refreshNotes();
+      getNotes()
     }
   };
 
@@ -71,7 +71,7 @@ export default function ShowNotes({ notes, refreshNotes }) {
       setIsEditingId("");
       setTitle("");
       setContent("");
-      refreshNotes();
+      getNotes()
     }
   };
 
@@ -148,7 +148,6 @@ export default function ShowNotes({ notes, refreshNotes }) {
                 <button
                   onClick={() => deleteNote(item.id)}
                   style={{
-                    marginBottom: "10px",
                     border: "2px solid black",
                     background: "red",
                     color: "white",
