@@ -37,7 +37,7 @@ export default function ShowNotes({ notes, refreshNotes }) {
     } catch (err) {
       console.error(err);
     } finally {
-      getNotes()
+      getNotes();
     }
   };
 
@@ -71,7 +71,7 @@ export default function ShowNotes({ notes, refreshNotes }) {
       setIsEditingId("");
       setTitle("");
       setContent("");
-      getNotes()
+      getNotes();
     }
   };
 
@@ -84,17 +84,22 @@ export default function ShowNotes({ notes, refreshNotes }) {
         <div className="note-container">
           {notes.map((item, index) =>
             isEditingId == item.id ? (
-              <div
-                className="note-card"
-                key={index}
-              >
+              <div className="note-card" key={index}>
                 <input
                   name="itemTitle"
                   type="text"
                   value={title}
-                  style={{ width: "90%", textAlign: "center", padding: ".5rem", marginTop: "1rem", color:"black", fontWeight: "bolder" }}
+                  style={{
+                    width: "90%",
+                    textAlign: "center",
+                    padding: ".5rem",
+                    marginTop: "1rem",
+                    color: "black",
+                    fontWeight: "bolder",
+                  }}
                   onChange={(e) => setTitle(e.target.value)}
                 />
+                <div className="line"></div>
                 <textarea
                   ref={textareaRef}
                   name="itemContent"
@@ -110,51 +115,35 @@ export default function ShowNotes({ notes, refreshNotes }) {
                   wrap="soft"
                   onChange={(e) => setContent(e.target.value)}
                 />
-                <button
-                  onClick={() => {
-                    setIsEditingId("");
-                    setTitle(""), setContent("");
-                  }}
-                  style={{ marginBottom: "10px", border: "2px solid black" }}
-                >
-                  Cancel edit
-                </button>
-                <button
-                  onClick={() => saveNote(title, content, item.id)}
-                  style={{
-                    marginBottom: "10px",
-                    border: "2px solid black",
-                  }}
-                >
-                  Save note
-                </button>
+                <div className="note-buttons-container">
+                  <div
+                    className="button-edit-save"
+                    onClick={() => saveNote(title, content, item.id)}
+                  ></div>
+                  <div
+                    className="button-edit-cancel"
+                    onClick={() => {
+                      setIsEditingId("");
+                      setTitle(""), setContent("");
+                    }}
+                  ></div>
+                </div>
               </div>
             ) : (
-              <div
-                key={index}
-                className="note-card"
-              >
+              <div key={index} className="note-card">
                 <div className="note-title">{item.title}</div>
+                <div className="line"></div>
                 <div className="note-content">{item.content}</div>
-                <button
-                  onClick={() => editNote(item.title, item.content, item.id)}
-                  style={{
-                    marginBottom: "10px",
-                    border: "2px solid black",
-                  }}
-                >
-                  Edit note
-                </button>
-                <button
-                  onClick={() => deleteNote(item.id)}
-                  style={{
-                    border: "2px solid black",
-                    background: "red",
-                    color: "white",
-                  }}
-                >
-                  Delete note
-                </button>
+                <div className="note-buttons-container">
+                  <div
+                    className="button-edit"
+                    onClick={() => editNote(item.title, item.content, item.id)}
+                  ></div>
+                  <div
+                    className="button-delete"
+                    onClick={() => deleteNote(item.id)}
+                  ></div>
+                </div>
               </div>
             )
           )}

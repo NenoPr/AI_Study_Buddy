@@ -1,3 +1,8 @@
+.line {
+    height: 0px;
+    border: 1px solid black;
+}
+
 .note-container {
     margin-top: 1rem;
     display: flex;
@@ -19,6 +24,7 @@
     flex-direction: column;
     align-content: center;
     justify-content: space-between;
+    gap: .5rem;
     padding: .5rem;
 }
 
@@ -37,6 +43,73 @@
     display: none;
 }
 
-button {
+.note-buttons-container {
+    display: flex;
+    flex-direction: row;
+    gap: .5rem;
+    justify-content: right;
+}
+
+.button-edit {
     flex-grow: 0;
+    height: 2rem;
+    width: 2rem;
+    background: url(edit.svg) no-repeat top right;
+    background-size: contain;
+    border: 2px solid rgb(255, 170, 0);
+    border-radius: .5rem;
+}
+
+.button-edit-save {
+    flex-grow: 0;
+    height: 2rem;
+    width: 2rem;
+    background: url(save.svg) no-repeat top right;
+    background-size: contain;
+    border: 2px solid rgb(255, 170, 0);
+    border-radius: .5rem;
+}
+
+.button-edit-save:hover {
+    cursor: pointer;
+    background-color: rgb(255, 170, 0);
+    border-color: rgb(0, 0, 0);
+}
+
+.button-edit:hover {
+    cursor: pointer;
+    background-color: rgb(255, 170, 0);
+    border-color: rgb(0, 0, 0);
+}
+
+.button-delete {
+    flex-grow: 0;
+    height: 2rem;
+    width: 2rem;
+    background: url(trash-bin.svg) no-repeat top right;
+    background-size: contain;
+    border: 2px solid red;
+    border-radius: .5rem;
+}
+
+.button-edit-cancel {
+    flex-grow: 0;
+    height: 2rem;
+    width: 2rem;
+    background: url(back.svg) no-repeat top right;
+    background-size: contain;
+    border: 2px solid red;
+    border-radius: .5rem;
+}
+
+.button-delete:hover {
+    cursor: pointer;
+    background-color: red;
+    border-color: rgb(0, 0, 0);
+}
+
+.button-edit-cancel:hover {
+    cursor: pointer;
+    background-color: red;
+    border-color: rgb(0, 0, 0);
 }

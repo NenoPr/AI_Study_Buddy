@@ -5,9 +5,6 @@ import { useEffect } from "react";
 export default function Navbar() {
   const { logout, status, user } = useAuth();
 
-  // useEffect(() => {
-
-  // }, [status])
   return (
     <nav style={{ padding: "10px", background: "#eee" }}>
       <Link to="/" style={{ marginRight: "10px" }}>
