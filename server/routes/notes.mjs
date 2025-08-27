@@ -42,6 +42,11 @@ router.get("/", async (req, res) => {
         [req.user.userId]
       );
       const totalRows = parseInt(totalResult.rows[0].count, 10);
+
+      const notes = result.rows.map(note => ({
+        ...note,
+        markdown: `${note.content}\n\n**Tags:** React, markdown`
+      }))
   
       res.json({ notes: result.rows, page, limit, totalRows });
     } catch (err) {

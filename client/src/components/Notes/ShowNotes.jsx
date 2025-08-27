@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ShowNotes({ notes, refreshNotes }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isEditingId, setIsEditingId] = useState("");
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
   const textareaRef = useRef(null);
@@ -37,6 +41,11 @@ export default function ShowNotes({ notes, refreshNotes }) {
     } catch (err) {
       console.error(err);
     } finally {
+      setIsEditingNote(false)
+      setNoteOpen(false)
+      setIsEditingId("")
+      setContent("")
+      setTitle("")
       getNotes();
     }
   };
@@ -68,24 +77,85 @@ export default function ShowNotes({ notes, refreshNotes }) {
       console.error(err);
       console.log(data, itemId);
     } finally {
-      setIsEditingId("");
-      setTitle("");
-      setContent("");
-      getNotes();
+      if (!noteOpen) {
+        setIsEditingId("");
+        setTitle("");
+        setContent("");
+        getNotes();
+      }
+      setIsEditingNote(false);
     }
   };
 
   return (
-    <>
+    <div className="notes">
       <button onClick={getNotes} disabled={loading}>
         {loading ? "Fetching notes..." : "Fetch notes"}
       </button>
-      {notes && (
+      {noteOpen && (
+        <div className="note-open">
+          {isEditingNote ? (
+            <>
+              <input
+                className="note-open-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <textarea
+                className="note-open-content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+              <div className="note-open-buttons">
+                <div
+                  className="button-edit-save"
+                  onClick={() => saveNote(title, content, isEditingId)}
+                ></div>
+                <div
+                  className="button-edit-cancel"
+                  onClick={() => {
+                    setIsEditingNote(false);
+                  }}
+                ></div>
+              </div>
+            </>
+          ) : (
+            <>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{title}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
+              <div className="note-open-buttons">
+                <div
+                  className="button-edit"
+                  onClick={() => setIsEditingNote(true)}
+                ></div>
+                <div
+                  className="button-delete"
+                  onClick={() => deleteNote(isEditingId)}
+                ></div>
+                <div
+                  className="button-edit-cancel"
+                  onClick={() => {
+                    setIsEditingId("");
+                    setTitle(""),
+                      setContent(""),
+                      setNoteOpen(false),
+                      setIsEditingNote(false);
+                  }}
+                ></div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      {notes && !noteOpen && (
         <div className="note-container">
           {notes.map((item, index) =>
             isEditingId == item.id ? (
               <div className="note-card" key={index}>
                 <input
+                  className="note-title"
                   name="itemTitle"
                   type="text"
                   value={title}
@@ -101,17 +171,10 @@ export default function ShowNotes({ notes, refreshNotes }) {
                 />
                 <div className="line"></div>
                 <textarea
+                  className="note-content"
                   ref={textareaRef}
                   name="itemContent"
                   value={content}
-                  style={{
-                    width: "90%",
-                    marginTop: "10px",
-                    resize: "none",
-                    overflow: "hidden",
-                    fontSize: "1rem",
-                    padding: "1rem",
-                  }}
                   wrap="soft"
                   onChange={(e) => setContent(e.target.value)}
                 />
@@ -131,14 +194,24 @@ export default function ShowNotes({ notes, refreshNotes }) {
               </div>
             ) : (
               <div key={index} className="note-card">
-                <div className="note-title">{item.title}</div>
-                <div className="line"></div>
-                <div className="note-content">{item.content}</div>
+                <div
+                  className="note-contents"
+                  onClick={() => {
+                    editNote(item.title, item.content, item.id);
+                    setNoteOpen(true);
+                  }}
+                >
+                  <div className="note-title">{item.title}</div>
+                  <div className="line"></div>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item.content}
+                  </ReactMarkdown>
+                </div>
                 <div className="note-buttons-container">
-                  <div
+                  {/* <div
                     className="button-edit"
                     onClick={() => editNote(item.title, item.content, item.id)}
-                  ></div>
+                  ></div> */}
                   <div
                     className="button-delete"
                     onClick={() => deleteNote(item.id)}
@@ -149,6 +222,6 @@ export default function ShowNotes({ notes, refreshNotes }) {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }

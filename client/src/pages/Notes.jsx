@@ -28,6 +28,7 @@ export default function NotesPage() {
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
       const data = await res.json();
+      console.log(data)
       setNotes(data.notes || []);
     } catch (err) {
       console.error(err);
