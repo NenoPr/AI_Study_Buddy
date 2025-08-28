@@ -5,28 +5,31 @@ import OpenAI from "openai";
 const router = Router();
 
 router.post("/ask", authenticateToken, async (req, res) => {
-  console.log(req.body.question)
+  console.log(req.body.question);
   try {
     const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: "Invalid token: user ID missing" });
+    if (!userId)
+      return res.status(401).json({ error: "Invalid token: user ID missing" });
 
     // Call OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
 
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       temperature: 0.3, // low creativity to reduce hallucinations
       max_tokens: 500,
       messages: [
-        { role: "system", content: "You are a helpful study assistant. Answer the students questions." },
+        {
+          role: "system",
+          content:
+            "You are a helpful study assistant. Answer the students questions.",
+        },
         { role: "user", content: `Question: ${req.body.question}` },
       ],
     });
 
     const answer = response.choices[0].message.content;
     res.json({ answer });
-
   } catch (err) {
     console.error("AI route error:", err);
     res.status(500).json({ error: err.message });
@@ -34,10 +37,11 @@ router.post("/ask", authenticateToken, async (req, res) => {
 });
 
 router.post("/askNote", authenticateToken, async (req, res) => {
-  console.log(req.body.question)
+  console.log(req.body.question);
   try {
     const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: "Invalid token: user ID missing" });
+    if (!userId)
+      return res.status(401).json({ error: "Invalid token: user ID missing" });
 
     // Get user's notes
     const result = await req.pool.query(
@@ -53,21 +57,26 @@ router.post("/askNote", authenticateToken, async (req, res) => {
 
     // Call OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
 
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       temperature: 0.3, // low creativity to reduce hallucinations
       max_tokens: 500,
       messages: [
-        { role: "system", content: "You are a helpful study assistant. Answer the students questions." },
-        { role: "user", content: `Here are my notes: \n${notesText}\n\nQuestion: ${req.body.question}` },
+        {
+          role: "system",
+          content:
+            "You are a helpful study assistant. Answer the students questions.",
+        },
+        {
+          role: "user",
+          content: `Here are my notes: \n${notesText}\n\nQuestion: ${req.body.question}`,
+        },
       ],
     });
 
     const answer = response.choices[0].message.content;
     res.json({ answer });
-
   } catch (err) {
     console.error("AI route error:", err);
     res.status(500).json({ error: err.message });
@@ -77,7 +86,8 @@ router.post("/askNote", authenticateToken, async (req, res) => {
 router.get("/summarize", authenticateToken, async (req, res) => {
   try {
     const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: "Invalid token: user ID missing" });
+    if (!userId)
+      return res.status(401).json({ error: "Invalid token: user ID missing" });
 
     // Get user's notes
     const result = await req.pool.query(
@@ -89,7 +99,9 @@ router.get("/summarize", authenticateToken, async (req, res) => {
       return res.json({ answer: "You have no notes to summarize yet." });
     }
 
-    const notesText = result.rows.map(note => `${note.title}: ${note.content}`).join("\n\n");
+    const notesText = result.rows
+      .map((note) => `${note.title}: ${note.content}`)
+      .join("\n\n");
 
     // Call OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -99,14 +111,68 @@ router.get("/summarize", authenticateToken, async (req, res) => {
       temperature: 0.3, // low creativity to reduce hallucinations
       max_tokens: 500,
       messages: [
-        { role: "system", content: "You are a helpful study assistant. Summarize the user's notes concisely." },
+        {
+          role: "system",
+          content:
+            "You are a helpful study assistant. Summarize the user's notes concisely.",
+        },
         { role: "user", content: `Here are my notes: \n${notesText}\n\n ` },
       ],
     });
 
     const summary = response.choices[0].message.content;
     res.json({ summary });
+  } catch (err) {
+    console.error("AI route error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
+router.get("/summarize/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { id } = req.params;
+    let result;
+    
+    if (!userId)
+      return res.status(401).json({ error: "Invalid token: user ID missing" });
+
+    // Get user's notes
+    try {
+      result = await req.pool.query(
+        "SELECT * FROM notes WHERE id=$1 AND user_id=$2",
+        [id, req.user.userId]
+      );
+      if (result.rows.length === 0)
+        return res.status(404).json({ error: "Note not found" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+
+    const notesText = result.rows
+        .map((note) => `${note.title}: ${note.content}`)
+        .join("\n\n");
+
+    // Call OpenAI
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      temperature: 0.3, // low creativity to reduce hallucinations
+      max_tokens: 500,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful study assistant. Summarize the user's notes concisely as much as you can.",
+        },
+        { role: "user", content: `Here are my notes: \n${notesText}\n\n ` },
+      ],
+    });
+
+    const summary = response.choices[0].message.content;
+    res.json({ summary });
   } catch (err) {
     console.error("AI route error:", err);
     res.status(500).json({ error: err.message });
@@ -114,28 +180,35 @@ router.get("/summarize", authenticateToken, async (req, res) => {
 });
 
 router.post("/createNote", authenticateToken, async (req, res) => {
-  console.log(req.body.note)
+  console.log(req.body.note);
   try {
     const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: "Invalid token: user ID missing" });
+    if (!userId)
+      return res.status(401).json({ error: "Invalid token: user ID missing" });
 
     // Call OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
+
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       temperature: 0.3, // low creativity to reduce hallucinations
       max_tokens: 500,
       messages: [
-        { role: "system", content: "Create titles for given notes. Keep it as short and as simple as possible. Only send title name, nothing else." },
-        { role: "user", content: `Create a fitting title for this note: ${req.body.note}` },
+        {
+          role: "system",
+          content:
+            "Create titles for given notes. Keep it as short and as simple as possible. Only send title name, nothing else.",
+        },
+        {
+          role: "user",
+          content: `Create a fitting title for this note: ${req.body.note}`,
+        },
       ],
     });
 
     const answer = response.choices[0].message.content;
     res.json({ answer });
-    console.log(answer)
-
+    console.log(answer);
   } catch (err) {
     console.error("AI route error:", err);
     res.status(500).json({ error: err.message });

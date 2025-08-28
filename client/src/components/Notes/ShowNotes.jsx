@@ -30,7 +30,6 @@ export default function ShowNotes({ notes, refreshNotes }) {
 
   const deleteNote = async (id) => {
     try {
-      // await is only here, inside the async function
       const res = await fetch(`/api/notes/${id}`, {
         method: "DELETE",
         headers: {
@@ -41,12 +40,30 @@ export default function ShowNotes({ notes, refreshNotes }) {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsEditingNote(false)
-      setNoteOpen(false)
-      setIsEditingId("")
-      setContent("")
-      setTitle("")
+      setIsEditingNote(false);
+      setNoteOpen(false);
+      setIsEditingId("");
+      setContent("");
+      setTitle("");
       getNotes();
+    }
+  };
+
+  const summarizeNote = async (id) => {
+    try {
+      const res = await fetch(`/api/ai/summarize/${id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      const data = await res.json()
+      console.log(data.summary)
+    } catch (err) {
+      console.error(err);
+    } finally {
     }
   };
 
@@ -96,16 +113,6 @@ export default function ShowNotes({ notes, refreshNotes }) {
         <div className="note-open">
           {isEditingNote ? (
             <>
-              <input
-                className="note-open-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <textarea
-                className="note-open-content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-              />
               <div className="note-open-buttons">
                 <div
                   className="button-edit-save"
@@ -118,13 +125,19 @@ export default function ShowNotes({ notes, refreshNotes }) {
                   }}
                 ></div>
               </div>
+              <input
+                className="note-open-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <textarea
+                className="note-open-content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
             </>
           ) : (
             <>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{title}</ReactMarkdown>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {content}
-              </ReactMarkdown>
               <div className="note-open-buttons">
                 <div
                   className="button-edit"
@@ -145,15 +158,54 @@ export default function ShowNotes({ notes, refreshNotes }) {
                   }}
                 ></div>
               </div>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{title}</ReactMarkdown>
+              <div style={{ border: "1px solid gray" }}></div>
+              <div className="note-open-content">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {content}
+                </ReactMarkdown>
+              </div>
             </>
           )}
         </div>
       )}
       {notes && !noteOpen && (
         <div className="note-container">
-          {notes.map((item, index) =>
-            isEditingId == item.id ? (
-              <div className="note-card" key={index}>
+          {notes.map((item, index) => (
+            <div key={index} className="note-card">
+              <div
+                className="note-contents"
+                onClick={() => {
+                  editNote(item.title, item.content, item.id);
+                  setNoteOpen(true);
+                }}
+              >
+                <div className="note-title">{item.title}</div>
+                <div className="line"></div>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {item.content}
+                </ReactMarkdown>
+              </div>
+              <div className="note-buttons-container">
+                <div
+                  className="button-delete"
+                  onClick={() => deleteNote(item.id)}
+                ></div>
+                <div
+                  className="button-summarize-note"
+                  onClick={() => summarizeNote(item.id)}
+                >Summorize</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+{
+  /* <div className="note-card" key={index}>
                 <input
                   className="note-title"
                   name="itemTitle"
@@ -191,37 +243,12 @@ export default function ShowNotes({ notes, refreshNotes }) {
                     }}
                   ></div>
                 </div>
-              </div>
-            ) : (
-              <div key={index} className="note-card">
-                <div
-                  className="note-contents"
-                  onClick={() => {
-                    editNote(item.title, item.content, item.id);
-                    setNoteOpen(true);
-                  }}
-                >
-                  <div className="note-title">{item.title}</div>
-                  <div className="line"></div>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {item.content}
-                  </ReactMarkdown>
-                </div>
-                <div className="note-buttons-container">
-                  {/* <div
+              </div> */
+}
+
+{
+  /* <div
                     className="button-edit"
                     onClick={() => editNote(item.title, item.content, item.id)}
-                  ></div> */}
-                  <div
-                    className="button-delete"
-                    onClick={() => deleteNote(item.id)}
-                  ></div>
-                </div>
-              </div>
-            )
-          )}
-        </div>
-      )}
-    </div>
-  );
+                  ></div> */
 }
