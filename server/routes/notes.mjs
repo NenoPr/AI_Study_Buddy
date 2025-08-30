@@ -109,7 +109,65 @@ router.get("/groups", async (req, res) => {
   }
 });
 
+router.get("/groupNotes/:group_id", async (req, res) => {
+  const { group_id } = req.params;
+  try {
+    // Get notes
+    const result = await req.pool.query(
+      "SELECT * FROM note_groups WHERE group_id = $1",
+      [group_id]
+    );
+
+    console.log("Note Groups Result:", result.rows);
+    const resData = result.rows;
+    let resNotes = [];
+
+    await Promise.all(
+      resData[0].forEach(async (notes) => {
+        resNotes.append(await req.pool.query(
+          `SELECT * FROM notes WHERE id=${notes.note_id}`,
+          [note_id, group_id]
+        ));
+      })
+    );
+    // const notes = await req.pool.query(
+    //   "SELECT * FROM notes WHERE id IN ($1, $2, $3)",
+    //   [resData[0].note_id, resData[1].note_id, resData[2].note_id]
+    // );
+
+    console.log("Notes: ", notes);
+    res.json({ notes: notes.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/groups", async (req, res) => {
+  // If updating an existing group
+  if (req.body.group_id) {
+    const note = req.body.notes_ids;
+    const group = req.body.group_id;
+
+    console.log(note)
+    console.log(group)
+
+    try {
+      // Get notes
+      const result = await req.pool.query(
+        "INSERT INTO note_groups (note_id, group_id) VALUES ($1, $2) RETURNING *",
+        [note, group]
+      );
+
+      res.json({ result: result.rows });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+    return
+  }
+  
+  // If creating an existing group
   const name = req.body.name;
   const notes_ids = req.body.notes_ids.split(",");
   console.log("Values passed: ", name, notes_ids);
