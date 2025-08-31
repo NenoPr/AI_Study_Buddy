@@ -110,6 +110,20 @@
     justify-content: right;
 }
 
+.button-groups {
+    height: 2rem;
+    width: 2rem;
+    background: url(group.svg) no-repeat top right;
+    background-size: contain;
+    border: 2px solid rgb(201, 133, 87);
+    border-radius: .5rem;
+}
+
+.button-groups:hover {
+    cursor: pointer;
+    background-color: rgb(201, 133, 87);
+}
+
 .button-edit {
     flex-grow: 0;
     height: 2rem;

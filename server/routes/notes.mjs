@@ -8,7 +8,7 @@ router.use(authenticateToken);
 
 // Create a route
 router.post("/", async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, groups } = req.body;
   if (!title || !content)
     return res.status(400).json({ error: "Title and content required" });
 
@@ -16,6 +16,15 @@ router.post("/", async (req, res) => {
     const result = await req.pool.query(
       "INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3) RETURNING *",
       [req.user.userId, title, content]
+    );
+
+    await Promise.all(
+      groups.map(async (groupId) => {
+        const noteGroupsTable = await req.pool.query(
+          "INSERT INTO note_groups (note_id, group_id) VALUES ($1, $2)",
+          [result.rows[0].id, groupId]
+        );
+      })
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -111,32 +120,44 @@ router.get("/groups", async (req, res) => {
 
 router.get("/groupNotes/:group_id", async (req, res) => {
   const { group_id } = req.params;
+  console.log("groupId: ", req.params)
   try {
     // Get notes
     const result = await req.pool.query(
       "SELECT * FROM note_groups WHERE group_id = $1",
       [group_id]
     );
-
     console.log("Note Groups Result:", result.rows);
-    const resData = result.rows;
-    let resNotes = [];
 
-    await Promise.all(
-      resData[0].forEach(async (notes) => {
-        resNotes.append(await req.pool.query(
-          `SELECT * FROM notes WHERE id=${notes.note_id}`,
-          [note_id, group_id]
-        ));
-      })
+    const noteIds = result.rows.map(note => note.note_id);
+
+    const resNotes = await req.pool.query(
+      "SELECT * FROM notes WHERE id = ANY($1)",
+      [noteIds]   // pass array as parameter
     );
-    // const notes = await req.pool.query(
-    //   "SELECT * FROM notes WHERE id IN ($1, $2, $3)",
-    //   [resData[0].note_id, resData[1].note_id, resData[2].note_id]
-    // );
 
-    console.log("Notes: ", notes);
-    res.json({ notes: notes.rows });
+    res.json({ notes: resNotes.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/groupNotes", async (req, res) => {
+  const note = req.body.notes_ids;
+  const group = req.body.group_id;
+
+  console.log(note);
+  console.log(group);
+
+  try {
+    // Get notes
+    const result = await req.pool.query(
+      "INSERT INTO note_groups (note_id, group_id) VALUES ($1, $2) RETURNING *",
+      [note, group]
+    );
+
+    res.json({ result: result.rows });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
@@ -149,8 +170,8 @@ router.post("/groups", async (req, res) => {
     const note = req.body.notes_ids;
     const group = req.body.group_id;
 
-    console.log(note)
-    console.log(group)
+    console.log(note);
+    console.log(group);
 
     try {
       // Get notes
@@ -164,9 +185,9 @@ router.post("/groups", async (req, res) => {
       console.error(err);
       res.status(500).json({ error: "Internal server error" });
     }
-    return
+    return;
   }
-  
+
   // If creating an existing group
   const name = req.body.name;
   const notes_ids = req.body.notes_ids.split(",");

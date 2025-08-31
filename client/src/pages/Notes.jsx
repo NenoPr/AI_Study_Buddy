@@ -13,11 +13,9 @@ export default function NotesPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      fetchNotes();
-      fetchGroups();
-    }
-  }, [token]);
+    fetchNotes();
+    fetchGroups();
+  }, []);
 
   const fetchGroups = async () => {
     try {
@@ -46,8 +44,8 @@ export default function NotesPage() {
 
   // Fetch notes only when token is ready
   const fetchNotes = async () => {
+    const controller = new AbortController();
     try {
-      if (!token) return;
       const res = await fetch("/api/notes", {
         method: "GET",
         headers: {
@@ -55,6 +53,7 @@ export default function NotesPage() {
           // Authorization: `Bearer ${localStorage.getItem("token")}`, <-- old way
         },
         credentials: "include",
+        signal: controller.signal,
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
       const data = await res.json();
@@ -64,7 +63,9 @@ export default function NotesPage() {
       console.error(err);
       setNotes([]);
     }
-    fetchGroups();
+    await fetchGroups();
+    // cleanup — runs when component unmounts
+    return () => controller.abort();
   };
 
   const addNoteToState = (newNote) => {
@@ -77,51 +78,83 @@ export default function NotesPage() {
     { value: "vanilla", label: "Vanilla" },
   ];
 
-  const fetchNotesGroups = async (e) => {
-    if (!e[0]) {
-      fetchNotes()
-      return
+  const fetchNotesGroups = async (selected) => {
+    const controller = new AbortController();
+    if (!selected || selected.length === 0) {
+      await fetchNotes();
+      return;
     }
+    const groupIds = selected.map((g) => Number(g.id)).filter(Boolean);
+    console.log("groupIds: ", groupIds);
     setIsDisabled(true);
     setIsLoading(true);
-    console.log("e: ",e[0].id)
+
     try {
-      if (!token) return;
-      const res = await fetch(`/api/notes/groupNotes/${e[0].id}`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const data = await res.json();
-      // console.log(data);
-      setNotes(data.notes || []);
+      const requests = groupIds.map((id) =>
+        fetch(`/api/notes/groupNotes/${id}`, {
+          method: "GET",
+          credentials: "include",
+          signal: controller.signal,
+        }).then((res) => {
+          if (!res.ok) throw new Error(`Error ${res.status}`);
+          return res.json(); // expect { notes: [...] }
+        })
+      );
+
+      // Wait for all to finish
+      const results = await Promise.all(requests);
+      // Merge all notes into one flat array
+      // results is [{notes: [...]}, {notes: [...]}, ...]
+      const merged = results.flatMap((r) => r.notes ?? []);
+      // (Optional) de-dupe by id if the same note can appear in multiple groups
+      const deduped = Array.from(
+        new Map(merged.map((n) => [n.id, n])).values()
+      );
+      // Single state update
+      setNotes(deduped);
     } catch (err) {
       console.error(err);
       setNotes([]);
     } finally {
       setIsDisabled(false);
       setIsLoading(false);
+      return () => controller.abort();
     }
   };
 
   return (
     <div>
-      <div onClick={fetchGroups}>Fetch Groups</div>
       <br />
-      <AddNote onNoteAdded={addNoteToState} refreshNotes={fetchNotes} />
-      <br />
-      <Select
-        options={groups}
-        isMulti
-        isDisabled={isDisabled}
-        isLoading={isLoading}
-        onChange={fetchNotesGroups}
+      <AddNote
+        onNoteAdded={addNoteToState}
+        refreshNotes={fetchNotes}
+        selectGroups={groups}
       />
+      <br />
+      <div>
+        <span>Groups</span>
+        <Select
+          options={groups}
+          isMulti
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onChange={fetchNotesGroups}
+          styles={{
+            control: (baseStyles, state) => ({
+              ...baseStyles,
+              borderColor: state.isFocused ? "grey" : "red",
+              width: "50%",
+              margin: "0 auto",
+            }),
+          }}
+        />
+      </div>
       <br />
       <ShowNotes
         notes={notes}
         refreshNotes={fetchNotes}
         onNoteAdded={addNoteToState}
+        selectGroups={groups}
       />
     </div>
   );

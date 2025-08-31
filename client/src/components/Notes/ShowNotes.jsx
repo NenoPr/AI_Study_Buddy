@@ -3,14 +3,18 @@ import { useAuth } from "../../context/AuthContext";
 import { useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Select from "react-select";
 
-export default function ShowNotes({ notes, refreshNotes }) {
+export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isEditingId, setIsEditingId] = useState("");
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectIsDisabled, setSelectIsDisabled] = useState(false);
+  const [selectIsLoading, setSelectIsLoading] = useState(false);
+  const [addToGroup, setAddToGroup] = useState(false);
   const { token } = useAuth();
   const textareaRef = useRef(null);
 
@@ -59,8 +63,8 @@ export default function ShowNotes({ notes, refreshNotes }) {
         credentials: "include",
       });
 
-      const data = await res.json()
-      console.log(data.summary)
+      const data = await res.json();
+      console.log(data.summary);
     } catch (err) {
       console.error(err);
     } finally {
@@ -140,6 +144,10 @@ export default function ShowNotes({ notes, refreshNotes }) {
             <>
               <div className="note-open-buttons">
                 <div
+                  className="button-groups"
+                  onClick={() => setAddToGroup(!addToGroup)}
+                ></div>
+                <div
                   className="button-edit"
                   onClick={() => setIsEditingNote(true)}
                 ></div>
@@ -158,6 +166,25 @@ export default function ShowNotes({ notes, refreshNotes }) {
                   }}
                 ></div>
               </div>
+              {addToGroup && (
+                <>
+                <Select
+                  options={selectGroups}
+                  isMulti
+                  isDisabled={selectIsDisabled}
+                  isLoading={selectIsLoading}
+                  styles={{
+                    control: (baseStyles, state) => ({
+                      ...baseStyles,
+                      borderColor: state.isFocused ? "grey" : "red",
+                      width: "50%",
+                      margin: "0 auto",
+                    }),
+                  }}
+                  />
+                  <button style={{width: "fit-content", alignSelf: "center"}}>Add this note to group/s</button>
+                  </>
+              )}
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{title}</ReactMarkdown>
               <div style={{ border: "1px solid gray" }}></div>
               <div className="note-open-content">
@@ -194,7 +221,9 @@ export default function ShowNotes({ notes, refreshNotes }) {
                 <div
                   className="button-summarize-note"
                   onClick={() => summarizeNote(item.id)}
-                >Summorize</div>
+                >
+                  Summorize
+                </div>
               </div>
             </div>
           ))}
