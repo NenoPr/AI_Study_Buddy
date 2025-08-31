@@ -146,20 +146,73 @@ router.get("/groupNotes/:group_id", async (req, res) => {
   }
 });
 
-router.get("/groupNotes/notes/:note_id", async (req, res) => {
+router.get("/groupNotes/note/group/:note_id", async (req, res) => {
   const { note_id } = req.params;
   console.log("note_id: ", req.params);
   try {
     // Get notes
     const result = await req.pool.query(
-      "SELECT * FROM note_groups WHERE note_id = $1",
+      "SELECT group_id FROM note_groups WHERE note_id = $1",
       [note_id]
     );
     console.log("Note Result:", result.rows);
 
     const groupIds = result.rows.map((group) => group.group_id);
-    console.log(groupIds)
-    res.json({ groupIds: groupIds });
+
+    const resGroups = (
+      await Promise.all(
+        groupIds.map(async (group_id) => {
+          try {
+            console.log("Querying group_id:", group_id);
+
+            const result = await req.pool.query(
+              "SELECT * FROM groups WHERE id = $1",
+              [group_id]
+            );
+
+            if (result.rows.length === 0) {
+              console.warn(`⚠️ No group found for id ${group_id}`);
+              return null; // return null if nothing found
+            }
+
+            return result.rows; // will be an array
+          } catch (err) {
+            console.error(
+              `❌ Error fetching group_id ${group_id}:`,
+              err.message
+            );
+            return null;
+          }
+        })
+      )
+    )
+      .filter(Boolean) // remove nulls
+      .flat(); // flatten nested arrays
+
+    console.log("✅ Clean groups:", resGroups);
+
+    console.log("All groups:", resGroups);
+    res.json({ groups: resGroups });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/groupNotes/note/:note_id", async (req, res) => {
+  const { note_id } = req.params;
+  console.log("note_id: ", req.params);
+  try {
+    // Get notes
+    const result = await req.pool.query(
+      "SELECT group_id FROM note_groups WHERE note_id = $1",
+      [note_id]
+    );
+    console.log("Note Result:", result.rows);
+
+    const groupIds = result.rows.map((group) => group.group_id);
+
+    res.json({ groups: groupIds });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });

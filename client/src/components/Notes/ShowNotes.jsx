@@ -16,6 +16,8 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const [addToGroup, setAddToGroup] = useState(false);
   const [groupsToAdd, setGroupsToAdd] = useState([]);
+  const [activeGroups, setActiveGroups] = useState([]);
+  activeGroups;
   const { token } = useAuth();
   const textareaRef = useRef(null);
 
@@ -24,6 +26,9 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
     refreshNotes();
     setLoading(false);
   };
+  useEffect(() => {
+    console.log("activeGroups: ", activeGroups[0]);
+  }, [activeGroups]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -32,28 +37,39 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
       el.style.height = `${el.scrollHeight}px`;
     }
   }, [content]);
-
   const getNotesGroups = async () => {
     if (addToGroup) {
       setAddToGroup(false);
+      setActiveGroups([]);
       return;
     }
-    setAddToGroup(true);
-    console.log(isEditingId)
+    console.log(isEditingId);
+    // Get groups that the note belongs in
     try {
-      const res = await fetch(`api/notes/groupNotes/notes/${isEditingId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          // Authorization: `Bearer ${localStorage.getItem("token")}`, <-- old way
-        },
-        credentials: "include",
-      });
+      const res = await fetch(
+        `/api/notes/groupNotes/note/group/${isEditingId}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
       if (!res.ok) throw new Error(`Error ${res.status}`);
-      const data = await res.json()
-      console.log("Notes groups data: ", data.groupIds)
+      const data = await res.json();
+      console.log("Notes groups data: ", data);
+      data.groups.map((group) => {
+        setActiveGroups((prev) => [
+          {
+            label: group.name,
+            value: group.name,
+            id: group.id,
+          },
+          ...prev,
+        ]);
+      });
     } catch (err) {
       console.error(err);
+    } finally {
+      setAddToGroup(true);
     }
   };
 
@@ -206,16 +222,22 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
                 ></div>
                 <div
                   className="button-delete"
-                  onClick={() => deleteNote(isEditingId)}
+                  onClick={() => {
+                    deleteNote(isEditingId);
+                    setAddToGroup(false);
+                    setActiveGroups([]);
+                  }}
                 ></div>
                 <div
                   className="button-edit-cancel"
                   onClick={() => {
                     setIsEditingId("");
-                    setTitle(""),
-                      setContent(""),
-                      setNoteOpen(false),
-                      setIsEditingNote(false);
+                    setTitle("");
+                    setContent("");
+                    setNoteOpen(false);
+                    setIsEditingNote(false);
+                    setAddToGroup(false);
+                    setActiveGroups([]);
                   }}
                 ></div>
               </div>
@@ -224,6 +246,7 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
                   <form onSubmit={updateNoteGroups}>
                     <Select
                       options={selectGroups}
+                      defaultValue={activeGroups}
                       isMulti
                       isDisabled={selectIsDisabled}
                       isLoading={selectIsLoading}
@@ -288,7 +311,7 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
                   className="button-summarize-note"
                   onClick={() => summarizeNote(item.id)}
                 >
-                  Summorize
+                  Summarize
                 </div>
               </div>
             </div>

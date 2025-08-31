@@ -17,6 +17,10 @@ export default function NotesPage() {
     fetchGroups();
   }, []);
 
+  // useEffect(() => {
+  //   console.log("use effect groups: ", groups)
+  // },[groups])
+
   const fetchGroups = async () => {
     try {
       const res = await fetch("/api/notes/groups", {
