@@ -79,6 +79,7 @@ export default function NotesPage() {
   ];
 
   const fetchNotesGroups = async (selected) => {
+    console.log("selected", selected)
     const controller = new AbortController();
     if (!selected || selected.length === 0) {
       await fetchNotes();

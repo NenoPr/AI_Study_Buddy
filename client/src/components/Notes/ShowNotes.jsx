@@ -15,6 +15,7 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const [addToGroup, setAddToGroup] = useState(false);
+  const [groupsToAdd, setGroupsToAdd] = useState([]);
   const { token } = useAuth();
   const textareaRef = useRef(null);
 
@@ -31,6 +32,30 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
       el.style.height = `${el.scrollHeight}px`;
     }
   }, [content]);
+
+  const getNotesGroups = async () => {
+    if (addToGroup) {
+      setAddToGroup(false);
+      return;
+    }
+    setAddToGroup(true);
+    console.log(isEditingId)
+    try {
+      const res = await fetch(`api/notes/groupNotes/notes/${isEditingId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization: `Bearer ${localStorage.getItem("token")}`, <-- old way
+        },
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json()
+      console.log("Notes groups data: ", data.groupIds)
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const deleteNote = async (id) => {
     try {
@@ -80,9 +105,8 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
 
   const saveNote = async (title, content, itemId) => {
     const data = { title, content };
-    console.log(itemId, title, content);
+    // console.log(itemId, title, content);
     try {
-      // await is only here, inside the async function
       const res = await fetch(`/api/notes/${itemId}`, {
         method: "PUT",
         headers: {
@@ -106,6 +130,38 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
       }
       setIsEditingNote(false);
     }
+  };
+
+  const updateNoteGroups = async (e) => {
+    e.preventDefault();
+    console.log("Data update Note groups: ", groupsToAdd);
+    const controller = new AbortController();
+    try {
+      const results = groupsToAdd.map((id) =>
+        fetch(`/api/notes/groupNotes`, {
+          method: "POST",
+          headers: { "Content-type": "application/json" },
+          body: JSON.stringify({ notes_ids: isEditingId, group_id: id }),
+          credentials: "include",
+          signal: controller.signal,
+        }).then((res) => {
+          if (!res.ok) throw new Error(`Error ${res.status}`);
+          return res.json(); // expect { notes: [...] }
+        })
+      );
+      console.log("Response:", results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (!noteOpen) {
+        setIsEditingId("");
+        setTitle("");
+        setContent("");
+        getNotes();
+      }
+      setAddToGroup(false);
+    }
+    return () => controller.abort();
   };
 
   return (
@@ -143,10 +199,7 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
           ) : (
             <>
               <div className="note-open-buttons">
-                <div
-                  className="button-groups"
-                  onClick={() => setAddToGroup(!addToGroup)}
-                ></div>
+                <div className="button-groups" onClick={getNotesGroups}></div>
                 <div
                   className="button-edit"
                   onClick={() => setIsEditingNote(true)}
@@ -168,22 +221,35 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
               </div>
               {addToGroup && (
                 <>
-                <Select
-                  options={selectGroups}
-                  isMulti
-                  isDisabled={selectIsDisabled}
-                  isLoading={selectIsLoading}
-                  styles={{
-                    control: (baseStyles, state) => ({
-                      ...baseStyles,
-                      borderColor: state.isFocused ? "grey" : "red",
-                      width: "50%",
-                      margin: "0 auto",
-                    }),
-                  }}
-                  />
-                  <button style={{width: "fit-content", alignSelf: "center"}}>Add this note to group/s</button>
-                  </>
+                  <form onSubmit={updateNoteGroups}>
+                    <Select
+                      options={selectGroups}
+                      isMulti
+                      isDisabled={selectIsDisabled}
+                      isLoading={selectIsLoading}
+                      onChange={(data) => {
+                        const groupIds = data
+                          .map((data) => Number(data.id))
+                          .filter(Boolean);
+                        setGroupsToAdd(groupIds);
+                      }}
+                      styles={{
+                        control: (baseStyles, state) => ({
+                          ...baseStyles,
+                          borderColor: state.isFocused ? "grey" : "red",
+                          width: "50%",
+                          margin: "0 auto",
+                        }),
+                      }}
+                    />
+                    <button
+                      style={{ width: "fit-content", alignSelf: "center" }}
+                      type="submit"
+                    >
+                      Add this note to group/s
+                    </button>
+                  </form>
+                </>
               )}
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{title}</ReactMarkdown>
               <div style={{ border: "1px solid gray" }}></div>
