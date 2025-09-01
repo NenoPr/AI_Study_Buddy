@@ -219,23 +219,29 @@ router.get("/groupNotes/note/:note_id", async (req, res) => {
   }
 });
 
-router.post("/groupNotes", async (req, res) => {
-  const note = req.body.notes_ids;
-  const group = req.body.group_id;
+router.post("/groupNotes/update", async (req, res) => {
+  const { note_id, group_ids } = req.body;
 
-  console.log(note);
-  console.log(group);
-
+  const client = await req.pool.connect();
   try {
-    const result = await req.pool.query(
-      "INSERT INTO note_groups (note_id, group_id) VALUES ($1, $2) RETURNING *",
-      [note, group]
-    );
+    await client.query("BEGIN");
+    await client.query("DELETE FROM note_groups WHERE note_id=$1", [note_id]);
 
-    res.json({ result: result.rows });
+    for (const group_id of group_ids) {
+      await client.query(
+        "INSERT INTO note_groups (note_id, group_id) VALUES ($1, $2)",
+        [note_id, group_id]
+      );
+    }
+
+    await client.query("COMMIT");
+    res.json({ success: true });
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
+  } finally {
+    client.release();
   }
 });
 

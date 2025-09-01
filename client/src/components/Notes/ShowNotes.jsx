@@ -37,41 +37,6 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
       el.style.height = `${el.scrollHeight}px`;
     }
   }, [content]);
-  const getNotesGroups = async () => {
-    if (addToGroup) {
-      setAddToGroup(false);
-      setActiveGroups([]);
-      return;
-    }
-    console.log(isEditingId);
-    // Get groups that the note belongs in
-    try {
-      const res = await fetch(
-        `/api/notes/groupNotes/note/group/${isEditingId}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const data = await res.json();
-      console.log("Notes groups data: ", data);
-      data.groups.map((group) => {
-        setActiveGroups((prev) => [
-          {
-            label: group.name,
-            value: group.name,
-            id: group.id,
-          },
-          ...prev,
-        ]);
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAddToGroup(true);
-    }
-  };
 
   const deleteNote = async (id) => {
     try {
@@ -148,23 +113,60 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
     }
   };
 
+  const getNotesGroups = async () => {
+    if (addToGroup) {
+      setAddToGroup(false);
+      setActiveGroups([]);
+      return;
+    }
+    console.log(isEditingId);
+    // Get groups that the note belongs in
+    try {
+      const res = await fetch(
+        `/api/notes/groupNotes/note/group/${isEditingId}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json();
+      console.log("Notes groups data: ", data);
+      data.groups.map((group) => {
+        setActiveGroups((prev) => [
+          {
+            label: group.name,
+            value: group.name,
+            id: group.id,
+          },
+          ...prev,
+        ]);
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAddToGroup(true);
+    }
+  };
+
   const updateNoteGroups = async (e) => {
     e.preventDefault();
     console.log("Data update Note groups: ", groupsToAdd);
+    console.log("Editing ID: ", isEditingId);
+
     const controller = new AbortController();
+
     try {
-      const results = groupsToAdd.map((id) =>
-        fetch(`/api/notes/groupNotes`, {
-          method: "POST",
-          headers: { "Content-type": "application/json" },
-          body: JSON.stringify({ notes_ids: isEditingId, group_id: id }),
-          credentials: "include",
-          signal: controller.signal,
-        }).then((res) => {
-          if (!res.ok) throw new Error(`Error ${res.status}`);
-          return res.json(); // expect { notes: [...] }
-        })
-      );
+      // Add all groups it belongs to
+      const results = await fetch(`/api/notes/groupNotes/update`, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({ note_id: isEditingId, group_ids: groupsToAdd }),
+        credentials: "include",
+        signal: controller.signal,
+      });
+      if (!results.ok) throw new Error(`Insert error ${results.status}`);
+
       console.log("Response:", results);
     } catch (err) {
       console.error(err);
@@ -175,7 +177,9 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
         setContent("");
         getNotes();
       }
+      setGroupsToAdd([])
       setAddToGroup(false);
+      getNotesGroups();
     }
     return () => controller.abort();
   };
@@ -269,7 +273,7 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
                       style={{ width: "fit-content", alignSelf: "center" }}
                       type="submit"
                     >
-                      Add this note to group/s
+                      Update notes groups
                     </button>
                   </form>
                 </>
