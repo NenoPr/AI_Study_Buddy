@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import Select from "react-select";
 import AddNote from "../components/Notes/AddNote";
+import AddGroup from "../components/Notes/AddGroups";
+import DeleteGroup from "../components/Notes/DeleteGroup";
 import ShowNotes from "../components/Notes/ShowNotes";
 import "../css/notes.css";
 
@@ -11,40 +13,18 @@ export default function NotesPage() {
   const [groups, setGroups] = useState([]);
   const [isDisabled, setIsDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeComponent, setActiveComponent] = useState(null);
 
   useEffect(() => {
     fetchNotes();
     fetchGroups();
   }, []);
 
+
   // useEffect(() => {
   //   console.log("use effect groups: ", groups)
   // },[groups])
 
-  const fetchGroups = async () => {
-    try {
-      const res = await fetch("/api/notes/groups", {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const resGroups = await res.json();
-      setGroups([]);
-      resGroups.groups.forEach((group) => {
-        setGroups((prev) => [
-          {
-            label: group.name,
-            value: group.name.replace("-", "").toLowerCase(),
-            id: group.id,
-          },
-          ...prev,
-        ]);
-      });
-    } catch (err) {
-      console.error(err);
-      setGroups([]);
-    }
-  };
 
   // Fetch notes only when token is ready
   const fetchNotes = async () => {
@@ -76,14 +56,33 @@ export default function NotesPage() {
     setNotes((prev) => [newNote, ...prev]);
   };
 
-  const options = [
-    { value: "chocolate", label: "Chocolate" },
-    { value: "strawberry", label: "Strawberry" },
-    { value: "vanilla", label: "Vanilla" },
-  ];
+  const fetchGroups = async () => {
+    try {
+      const res = await fetch("/api/notes/groups", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const resGroups = await res.json();
+      setGroups([]);
+      resGroups.groups.forEach((group) => {
+        setGroups((prev) => [
+          {
+            label: group.name,
+            value: group.name,
+            id: group.id,
+          },
+          ...prev,
+        ]);
+      });
+    } catch (err) {
+      console.error(err);
+      setGroups([]);
+    }
+  };
 
   const fetchNotesGroups = async (selected) => {
-    console.log("selected", selected)
+    console.log("selected", selected);
     const controller = new AbortController();
     if (!selected || selected.length === 0) {
       await fetchNotes();
@@ -134,8 +133,29 @@ export default function NotesPage() {
         onNoteAdded={addNoteToState}
         refreshNotes={fetchNotes}
         selectGroups={groups}
+        setActiveComponent={setActiveComponent}
+        activeComponent={activeComponent}
       />
       <br />
+      <AddGroup
+        fetchGroups={fetchGroups}
+        setActiveComponent={setActiveComponent}
+        activeComponent={activeComponent}
+      />
+      <br />
+      <DeleteGroup
+        selectGroups={groups}
+        fetchGroups={fetchGroups}
+        setActiveComponent={setActiveComponent}
+        activeComponent={activeComponent}
+      />
+      <div
+        style={{
+          border: "1px solid black",
+          marginBottom: "1rem",
+          marginTop: "1rem",
+        }}
+      ></div>
       <div>
         <span>Groups</span>
         <Select

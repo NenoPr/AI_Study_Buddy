@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Select from "react-select";
 
-export default function AddNote({ refreshNotes, onNoteAdded, selectGroups }) {
+export default function AddNote({ refreshNotes, onNoteAdded, selectGroups, setActiveComponent, activeComponent }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [groups, setGroups] = useState("")
@@ -12,6 +12,8 @@ export default function AddNote({ refreshNotes, onNoteAdded, selectGroups }) {
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const { token } = useAuth();
+
+  if (activeComponent && activeComponent !== "addNote") return
 
   // ✅ This function is async
   const addNote = async (e) => {
@@ -31,7 +33,8 @@ export default function AddNote({ refreshNotes, onNoteAdded, selectGroups }) {
       });
       const data = await res.json();
       if (data) {
-        onNoteAdded(data); // ✅ push new note into parent state
+        //onNoteAdded(data); // ✅ push new note into parent state
+        refreshNotes()
       }
     } catch (err) {
       console.error(err);
@@ -40,13 +43,10 @@ export default function AddNote({ refreshNotes, onNoteAdded, selectGroups }) {
       setNoteAdd(false);
       setTitle("");
       setContent("");
+      setActiveComponent(null)
       // refreshNotes();
     }
   };
-
-  useEffect(() => {
-    console.log(groups)
-  },[groups])
 
   function updateGroups(selected) {
     const groupIds = selected.map((g) => Number(g.id)).filter(Boolean);
@@ -55,25 +55,26 @@ export default function AddNote({ refreshNotes, onNoteAdded, selectGroups }) {
 
   return (
     <div>
-      {noteAdd ? (
+      {noteAdd ? (<>
+        <h3>Add Note</h3>
         <form onSubmit={addNote} name="addNote">
-          <h2>Title</h2>
+          <h4>Title</h4>
           <input
             type="text"
             placeholder="Title..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-          />
+            />
           <br />
-          <h2>Content</h2>
+          <h4>Content</h4>
           <input
             type="text"
             placeholder="Content..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
-          />
+            />
           <br />
-          <h2>Groups</h2>
+          <h4>Groups</h4>
           <Select
             options={selectGroups}
             isMulti
@@ -88,14 +89,17 @@ export default function AddNote({ refreshNotes, onNoteAdded, selectGroups }) {
               }),
             }}
             onChange={updateGroups}
-          />
+            />
           <br />
           <button type="submit" disabled={loading}>
             {loading ? "Adding note..." : "Add note"}
           </button>
+          <button onClick={() => {setNoteAdd(false); setActiveComponent(null)}}>Cancel</button>
+          <div style={{border: "1px solid black", marginTop: "1rem"}}></div>
         </form>
+            </>
       ) : (
-        <button onClick={() => setNoteAdd(true)}>Add Note</button>
+        <button onClick={() => {setNoteAdd(true); setActiveComponent("addNote")}}>Add Note</button>
       )}
     </div>
   );

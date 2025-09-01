@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
 // READ all notes for the logged-in user
 router.get("/", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const limit = parseInt(req.query.limit) || 100;
   const offset = (page - 1) * limit;
 
   try {
@@ -89,23 +89,6 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// DELETE a note by id
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await req.pool.query(
-      "DELETE FROM notes WHERE id=$1 AND user_id=$2 RETURNING *",
-      [id, req.user.userId]
-    );
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: "Note not found" });
-    res.json({ message: "Note deleted", note: result.rows[0] });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 router.get("/groups", async (req, res) => {
   try {
     // Get notes
@@ -116,6 +99,61 @@ router.get("/groups", async (req, res) => {
 
     res.json({ groups: result.rows });
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/groups", async (req, res) => {
+  // If creating a new group
+  const name = req.body.name;
+  const notes_ids = req.body.notes_ids?.split(",");
+  console.log("Values passed: ", name, notes_ids);
+
+  try {
+    const client = await req.pool.connect();
+
+    await client.query("BEGIN");
+    const GroupTable = await client.query(
+      "INSERT INTO groups (name, user_id) VALUES ($1, $2) RETURNING *",
+      [name, req.user.userId]
+    );
+
+    const group_id = GroupTable.rows[0].id;
+
+    if (notes_ids) {
+      for (const note_id of notes_ids) {
+        await client.query(
+          "INSERT INTO note_groups (note_id, group_id) VALUES ($1, $2)",
+          [note_id, group_id]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+
+    res.status(200).json("Success");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.delete("/groups", async (req, res) => {
+  const ids = req.body.ids;
+  const client = await req.pool.connect();
+  try {
+
+    await client.query("BEGIN");
+    for (const group_id of ids) {
+      await client.query("DELETE FROM groups WHERE id=$1", [group_id]);
+    }
+    await client.query("COMMIT");
+
+    res.json("Success");
+  } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
@@ -245,31 +283,17 @@ router.post("/groupNotes/update", async (req, res) => {
   }
 });
 
-router.post("/groups", async (req, res) => {
-  // If creating a new group
-  const name = req.body.name;
-  const notes_ids = req.body.notes_ids.split(",");
-  console.log("Values passed: ", name, notes_ids);
-
+// DELETE a note by id
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
   try {
-    // Get notes
-    const GroupTable = await req.pool.query(
-      "INSERT INTO groups (name, user_id) VALUES ($1, $2) RETURNING *",
-      [name, req.user.userId]
+    const result = await req.pool.query(
+      "DELETE FROM notes WHERE id=$1 AND user_id=$2 RETURNING *",
+      [id, req.user.userId]
     );
-    console.log("Group Table: ");
-    const group_id = GroupTable.rows[0].id;
-    await Promise.all(
-      notes_ids.map(async (note_id) => {
-        const noteGroupsTable = await req.pool.query(
-          "INSERT INTO note_groups (note_id, group_id) VALUES ($1, $2)",
-          [note_id, group_id]
-        );
-      })
-    );
-
-    //   res.json({ groups: result.rows});
-    res.status(200).json("Success");
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Note not found" });
+    res.json({ message: "Note deleted", note: result.rows[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
