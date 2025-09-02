@@ -15,14 +15,16 @@ export default function NotesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeComponent, setActiveComponent] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [groupsSelected, setGroupsSelected] = useState(null)
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  const [groupsSelected, setGroupsSelected] = useState(null);
+  const [summarizeGroupsResponse, setSummarizeGroupsResponse] = useState("")
 
   useEffect(() => {
     fetchNotes();
     fetchGroups();
   }, []);
 
-  
   const getNotes = async () => {
     setLoading(true);
     fetchNotesGroups(groupsSelected);
@@ -86,7 +88,7 @@ export default function NotesPage() {
 
   const fetchNotesGroups = async (selected) => {
     console.log("selected", selected);
-    setGroupsSelected(selected)
+    setGroupsSelected(selected);
     if (!selected || selected.length === 0) {
       await fetchNotes();
       return;
@@ -130,29 +132,75 @@ export default function NotesPage() {
     }
   };
 
+  const summarizeGroups = async () => {
+    if (!groupsSelected || groupsSelected.length === 0) {
+      return;
+    }
+    const controller = new AbortController();
+    const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
+    setIsDisabled(true);
+    setIsLoading(true);
+    setLoadingGroups(true);
+    setLoadingNotes(false);
+    console.log("groupIds: ", groupIds)
+
+    try {
+      const request = await fetch(`/api/ai/summarize/groupNotes`, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({ group_ids: groupIds }),
+        credentials: "include",
+        signal: controller.signal,
+      });
+      if (!request.ok) throw new Error(`Error ${request.status}`);
+
+
+      // Wait for all to finish
+      const results = await request.json();
+      console.log("Response: ", results)
+      setSummarizeGroupsResponse(results.summary)
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsDisabled(false);
+      setIsLoading(false);
+      setLoadingGroups(false);
+      setLoadingNotes(false);
+      return () => controller.abort();
+    }
+  };
+
   return (
     <div>
-      <br />
-      <AddNote
-        onNoteAdded={addNoteToState}
-        refreshNotes={fetchNotes}
-        selectGroups={groups}
-        setActiveComponent={setActiveComponent}
-        activeComponent={activeComponent}
-      />
-      <br />
-      <AddGroup
-        fetchGroups={fetchGroups}
-        setActiveComponent={setActiveComponent}
-        activeComponent={activeComponent}
-      />
-      <br />
-      <DeleteGroup
-        selectGroups={groups}
-        fetchGroups={fetchGroups}
-        setActiveComponent={setActiveComponent}
-        activeComponent={activeComponent}
-      />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          margin: "1rem",
+        }}
+      >
+        <AddNote
+          onNoteAdded={addNoteToState}
+          refreshNotes={fetchNotes}
+          selectGroups={groups}
+          setActiveComponent={setActiveComponent}
+          activeComponent={activeComponent}
+        />
+
+        <AddGroup
+          fetchGroups={fetchGroups}
+          setActiveComponent={setActiveComponent}
+          activeComponent={activeComponent}
+        />
+
+        <DeleteGroup
+          selectGroups={groups}
+          fetchGroups={fetchGroups}
+          setActiveComponent={setActiveComponent}
+          activeComponent={activeComponent}
+        />
+      </div>
       <div
         style={{
           border: "1px solid black",
@@ -160,8 +208,16 @@ export default function NotesPage() {
           marginTop: "1rem",
         }}
       ></div>
-      <div>
-        <span>Groups</span>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-start",
+          gap: "3rem",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ fontWeight: "bold" }}>Groups: </div>
         <Select
           options={groups}
           isMulti
@@ -172,17 +228,27 @@ export default function NotesPage() {
             control: (baseStyles, state) => ({
               ...baseStyles,
               borderColor: state.isFocused ? "grey" : "red",
-              width: "50%",
-              margin: "0 auto",
+              flexGrow: "1",
+              width: "20vw",
             }),
           }}
         />
+        <button onClick={getNotes} disabled={loading}>
+          {loadingNotes ? "Fetching notes..." : "Fetch notes"}
+        </button>
+        <button onClick={summarizeGroups} disabled={loading}>
+          {loadingGroups
+            ? "Summarizing groups..."
+            : "Summarize selected groups"}
+        </button>
       </div>
-      <br />
-      <button onClick={getNotes} disabled={loading}>
-        {loading ? "Fetching notes..." : "Fetch notes"}
-      </button>
-      <br />
+      <div
+        style={{
+          border: "1px solid black",
+          marginBottom: "1rem",
+          marginTop: "1rem",
+        }}
+      ></div>
       <ShowNotes
         notes={notes}
         refreshNotes={fetchNotes}
@@ -190,6 +256,9 @@ export default function NotesPage() {
         selectGroups={groups}
         fetchNotesGroups={fetchNotesGroups}
         getNotes={getNotes}
+        summarizeGroupsResponse={summarizeGroupsResponse}
+        setSummarizeGroupsResponse={setSummarizeGroupsResponse}
+        groupsSelected={groupsSelected}
       />
     </div>
   );

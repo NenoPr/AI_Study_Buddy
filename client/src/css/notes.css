@@ -1,26 +1,35 @@
 .line {
     height: 0px;
     border: 1px solid black;
+    margin: 0rem;
 }
 
 .notes {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     align-self: center;
     justify-self: center;
     gap: 1rem;
-    width: 90vw;
+    width: 100%
 }
 
 .note-container {
     margin-top: 1rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    grid-template-rows: auto;
+    display: flex;
+    /* grid-template-columns: auto-fill;
+    grid-template-rows: repeat(auto-fill, 1fr); */
     gap: 1rem;
     max-width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.summary {
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    text-align: left;
 }
 
 .note-open {
@@ -64,22 +73,36 @@
 .note-card {
     border: 3px solid black;
     border-radius: .5rem;
-    margin-bottom: 1rem;
     height: 300px;
     width: 300px;
     display: flex;
     flex-direction: column;
     gap: .5rem;
-    padding: .5rem;
+}
+
+@media only screen and (width: 1920px) {
+    .note-card {
+        border: 3px solid black;
+        border-radius: .5rem;
+        height: 300px;
+        width: 287px;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+    }
+    
 }
 
 .note-contents {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    gap: .5rem;
     flex: 1;
     height: 90%;
+}
+
+p {
+    margin-top: .5rem;
 }
 
 .note-contents:hover {
@@ -89,14 +112,23 @@
 .note-title {
     font-weight: bolder;
     flex-grow: 0;
+    padding-top: .2rem;
+    padding-bottom: .2rem;
+    border-top-left-radius: .5rem;
+    border-top-right-radius: .5rem;
+    font-size: 1.2rem;
+    background-color: rgb(255, 255, 255);
+    color: black;
+    overflow: hidden;
 }
 
 .note-content {
-    overflow-y: scroll;
     height: 50%;
     flex-grow: 1;
     font-size: 1rem;
     resize: none;
+    margin-left: .5rem;
+    margin-right: .5rem;
 }
 
 .note-content::-webkit-scrollbar-button {
@@ -106,8 +138,11 @@
 .note-buttons-container {
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: .5rem;
     justify-content: right;
+    background-color: rgb(206, 236, 255);
+    padding: .5rem;
 }
 
 .button-groups {

@@ -5,7 +5,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
 
-export default function ShowNotes({ notes, refreshNotes, selectGroups, getNotes }) {
+export default function ShowNotes({
+  notes,
+  refreshNotes,
+  selectGroups,
+  getNotes,
+  summarizeGroupsResponse,
+  setSummarizeGroupsResponse,
+  groupsSelected,
+}) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isEditingId, setIsEditingId] = useState("");
@@ -17,7 +25,8 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups, getNotes 
   const [addToGroup, setAddToGroup] = useState(false);
   const [groupsToAdd, setGroupsToAdd] = useState([]);
   const [activeGroups, setActiveGroups] = useState([]);
-  activeGroups;
+  const [creatingNote, setCreatingNote] = useState(false);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
   const { token } = useAuth();
   const textareaRef = useRef(null);
 
@@ -32,6 +41,8 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups, getNotes 
       el.style.height = `${el.scrollHeight}px`;
     }
   }, [content]);
+
+  useEffect(() => {}, [summarizeGroupsResponse]);
 
   const deleteNote = async (id) => {
     try {
@@ -173,130 +184,267 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups, getNotes 
     return () => controller.abort();
   };
 
+  const createNote = async () => {
+    setCreatingNote(true);
+
+    try {
+      const res = await fetch("/api/ai/createNote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ note: summarizeGroupsResponse }),
+        credentials: "include",
+      });
+
+      const resData = await res.json();
+      setTitle(resData.answer)
+      addNote(summarizeGroupsResponse);
+    } catch (err) {
+      console.error(err);
+      alert("Error creating note...");
+    } finally {
+      setCreatingNote(false);
+    }
+  };
+
+  const addNote = async (content) => {
+    const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
+    try {
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: title,
+          content: content,
+          groups: groupIds,
+        }),
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      alert(`Created a note under the title: ${title}`);
+      setTitle("")
+      setIsCreatingNote(false)
+    }
+  };
+
   return (
     <div className="notes">
-      {noteOpen && (
-        <div className="note-open">
-          {isEditingNote ? (
+      {summarizeGroupsResponse ? (
+        <div className="summary">
+          <div style={{ fontWeight: "bold", fontSize: "1.5rem" }}>
+            Response:
+          </div>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {summarizeGroupsResponse}
+          </ReactMarkdown>
+          {isCreatingNote ? null : (
+            <button
+              style={{ width: "fit-content" }}
+              onClick={() => setIsCreatingNote(true)}
+            >
+              Create a new note
+            </button>
+          )}
+          <br />
+          {isCreatingNote ? (
             <>
-              <div className="note-open-buttons">
-                <div
-                  className="button-edit-save"
-                  onClick={() => saveNote(title, content, isEditingId)}
-                ></div>
-                <div
-                  className="button-edit-cancel"
-                  onClick={() => {
-                    setIsEditingNote(false);
-                  }}
-                ></div>
-              </div>
+              <button
+                onClick={createNote}
+                disabled={creatingNote}
+                style={{ width: "fit-content", margin: "0 auto" }}
+              >
+                Let AI handle it...
+              </button>
+              <label for="title">Title:</label>
               <input
-                className="note-open-title"
-                value={title}
+                name="title"
+                type="text"
+                placeholder="Title..."
+                style={{ width: "20rem" }}
                 onChange={(e) => setTitle(e.target.value)}
               />
-              <textarea
-                className="note-open-content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                // useRef={textareaRef}
-              />
+              <br />
+              <label>
+                Groups:
+                <Select
+                  options={selectGroups}
+                  defaultValue={groupsSelected}
+                  isMulti
+                  isDisabled={selectIsDisabled}
+                  isLoading={selectIsLoading}
+                  onChange={(data) => {
+                    const groupIds = data
+                      .map((data) => Number(data.id))
+                      .filter(Boolean);
+                    setGroupsToAdd(groupIds);
+                  }}
+                  styles={{
+                    control: (baseStyles, state) => ({
+                      ...baseStyles,
+                      borderColor: state.isFocused ? "grey" : "red",
+                      width: "50%",
+                    }),
+                  }}
+                />
+              </label>
+              <br />
+              <button style={{ width: "fit-content", margin: "0 auto" }} onClick={() => addNote(summarizeGroupsResponse)}>
+                Create new note
+              </button>
+              <br />
+              <button
+                onClick={() => setIsCreatingNote(false)}
+                style={{ width: "fit-content", margin: "0 auto" }}
+              >
+                Cancel
+              </button>
             </>
-          ) : (
-            <>
-              <div className="note-open-buttons">
-                {deletingNoteId == isEditingId ? (
+          ) : null}
+          <br />
+          <button
+            style={{ width: "fit-content" }}
+            onClick={() => {
+              setSummarizeGroupsResponse(null), getNotes();
+            }}
+          >
+            Return
+          </button>
+        </div>
+      ) : (
+        noteOpen && (
+          <div className="note-open">
+            {isEditingNote ? (
+              <>
+                <div className="note-open-buttons">
+                  <div
+                    className="button-edit-save"
+                    onClick={() => saveNote(title, content, isEditingId)}
+                  ></div>
+                  <div
+                    className="button-edit-cancel"
+                    onClick={() => {
+                      setIsEditingNote(false);
+                    }}
+                  ></div>
+                </div>
+                <input
+                  className="note-open-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+                <textarea
+                  className="note-open-content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  // useRef={textareaRef}
+                />
+              </>
+            ) : (
+              <>
+                <div className="note-open-buttons">
+                  {deletingNoteId == isEditingId ? (
+                    <>
+                      <span style={{ alignSelf: "center" }}>Are you sure?</span>
+                      <button
+                        onClick={() => {
+                          setAddToGroup(false);
+                          setActiveGroups([]);
+                          deleteNote(isEditingId);
+                        }}
+                      >
+                        Yes
+                      </button>
+                      <button onClick={() => setDeletingNoteId(null)}>
+                        No
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        className="button-groups"
+                        onClick={getNotesGroups}
+                      ></div>
+                      <div
+                        className="button-edit"
+                        onClick={() => setIsEditingNote(true)}
+                      ></div>
+                      <div
+                        className="button-delete"
+                        onClick={() => {
+                          setDeletingNoteId(isEditingId);
+                        }}
+                      ></div>
+                      <div
+                        className="button-edit-cancel"
+                        onClick={() => {
+                          setIsEditingId("");
+                          setTitle("");
+                          setContent("");
+                          setNoteOpen(false);
+                          setIsEditingNote(false);
+                          setAddToGroup(false);
+                          setActiveGroups([]);
+                          getNotes();
+                        }}
+                      ></div>
+                    </>
+                  )}
+                </div>
+                {addToGroup && (
                   <>
-                    <span style={{ alignSelf: "center" }}>Are you sure?</span>
-                    <button
-                      onClick={() => {
-                        setAddToGroup(false);
-                        setActiveGroups([]);
-                        deleteNote(isEditingId);
-                      }}
-                    >
-                      Yes
-                    </button>
-                    <button onClick={() => setDeletingNoteId(null)}>No</button>
-                  </>
-                ) : (
-                  <>
-                    <div
-                      className="button-groups"
-                      onClick={getNotesGroups}
-                    ></div>
-                    <div
-                      className="button-edit"
-                      onClick={() => setIsEditingNote(true)}
-                    ></div>
-                    <div
-                      className="button-delete"
-                      onClick={() => {
-                        setDeletingNoteId(isEditingId);
-                      }}
-                    ></div>
-                    <div
-                      className="button-edit-cancel"
-                      onClick={() => {
-                        setIsEditingId("");
-                        setTitle("");
-                        setContent("");
-                        setNoteOpen(false);
-                        setIsEditingNote(false);
-                        setAddToGroup(false);
-                        setActiveGroups([]);
-                        getNotes();
-                      }}
-                    ></div>
+                    <form onSubmit={updateNoteGroups}>
+                      <Select
+                        options={selectGroups}
+                        defaultValue={activeGroups}
+                        isMulti
+                        isDisabled={selectIsDisabled}
+                        isLoading={selectIsLoading}
+                        onChange={(data) => {
+                          const groupIds = data
+                            .map((data) => Number(data.id))
+                            .filter(Boolean);
+                          setGroupsToAdd(groupIds);
+                        }}
+                        styles={{
+                          control: (baseStyles, state) => ({
+                            ...baseStyles,
+                            borderColor: state.isFocused ? "grey" : "red",
+                            width: "50%",
+                            margin: "0 auto",
+                          }),
+                        }}
+                      />
+                      <button
+                        style={{ width: "fit-content", alignSelf: "center" }}
+                        type="submit"
+                      >
+                        Update notes groups
+                      </button>
+                    </form>
                   </>
                 )}
-              </div>
-              {addToGroup && (
-                <>
-                  <form onSubmit={updateNoteGroups}>
-                    <Select
-                      options={selectGroups}
-                      defaultValue={activeGroups}
-                      isMulti
-                      isDisabled={selectIsDisabled}
-                      isLoading={selectIsLoading}
-                      onChange={(data) => {
-                        const groupIds = data
-                          .map((data) => Number(data.id))
-                          .filter(Boolean);
-                        setGroupsToAdd(groupIds);
-                      }}
-                      styles={{
-                        control: (baseStyles, state) => ({
-                          ...baseStyles,
-                          borderColor: state.isFocused ? "grey" : "red",
-                          width: "50%",
-                          margin: "0 auto",
-                        }),
-                      }}
-                    />
-                    <button
-                      style={{ width: "fit-content", alignSelf: "center" }}
-                      type="submit"
-                    >
-                      Update notes groups
-                    </button>
-                  </form>
-                </>
-              )}
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{title}</ReactMarkdown>
-              <div style={{ border: "1px solid gray" }}></div>
-              <div className="note-open-content">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {content}
+                  {title}
                 </ReactMarkdown>
-              </div>
-            </>
-          )}
-        </div>
+                <div style={{ border: "1px solid gray" }}></div>
+                <div className="note-open-content">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {content}
+                  </ReactMarkdown>
+                </div>
+              </>
+            )}
+          </div>
+        )
       )}
-      {notes && !noteOpen && (
+      {notes && !noteOpen && !summarizeGroupsResponse && (
         <div className="note-container">
           {notes.map((item, index) => (
             <div key={index} className="note-card">
@@ -307,11 +455,17 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups, getNotes 
                   setNoteOpen(true);
                 }}
               >
-                <div className="note-title">{item.title}</div>
-                <div className="line"></div>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {item.content}
-                </ReactMarkdown>
+                <div>
+                  <div className="note-title">
+                    {item.title.replace(/#/g, "")}
+                  </div>
+                  <div className="line"></div>
+                </div>
+                <div className="note-content">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item.content}
+                  </ReactMarkdown>
+                </div>
               </div>
               <div className="note-buttons-container">
                 {deletingNoteId == item.id ? (
