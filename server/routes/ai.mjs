@@ -158,7 +158,7 @@ router.get("/summarize/:id", async (req, res) => {
         {
           role: "system",
           content:
-            "You are a helpful study assistant. Summarize the user's notes concisely as much as you can.",
+            "You are a helpful study assistant. Summarize the user's notes concisely. Use the .md format to format them, make them look easy to understand and pleasing to see.",
         },
         { role: "user", content: `Here are my notes: \n${notesText}\n\n ` },
       ],

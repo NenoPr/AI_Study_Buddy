@@ -20,6 +20,7 @@ export default function ShowNotes({
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState(null);
+  const [loading, setLoading] = useState(false)
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const [addToGroup, setAddToGroup] = useState(false);
@@ -66,6 +67,8 @@ export default function ShowNotes({
   };
 
   const summarizeNote = async (id) => {
+    setLoading(true)
+    setIsEditingId(id)
     try {
       const res = await fetch(`/api/ai/summarize/${id}`, {
         method: "GET",
@@ -76,10 +79,12 @@ export default function ShowNotes({
       });
 
       const data = await res.json();
-      console.log(data.summary);
+      setSummarizeGroupsResponse(data.summary)
     } catch (err) {
       console.error(err);
     } finally {
+      setLoading(false)
+      setIsEditingId("")
     }
   };
 
@@ -184,7 +189,7 @@ export default function ShowNotes({
     return () => controller.abort();
   };
 
-  const createNote = async () => {
+  const createNoteTitle = async () => {
     setCreatingNote(true);
 
     try {
@@ -199,8 +204,7 @@ export default function ShowNotes({
       });
 
       const resData = await res.json();
-      setTitle(resData.answer)
-      addNote(summarizeGroupsResponse);
+      addNote(resData.answer, summarizeGroupsResponse);
     } catch (err) {
       console.error(err);
       alert("Error creating note...");
@@ -209,7 +213,7 @@ export default function ShowNotes({
     }
   };
 
-  const addNote = async (content) => {
+  const addNote = async ( AiTitle, content) => {
     const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
     try {
       const res = await fetch("/api/notes", {
@@ -219,7 +223,7 @@ export default function ShowNotes({
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: title,
+          title: AiTitle,
           content: content,
           groups: groupIds,
         }),
@@ -228,7 +232,7 @@ export default function ShowNotes({
     } catch (err) {
       console.error(err);
     } finally {
-      alert(`Created a note under the title: ${title}`);
+      alert(`Created a note under the title: ${AiTitle}`);
       setTitle("")
       setIsCreatingNote(false)
     }
@@ -256,7 +260,7 @@ export default function ShowNotes({
           {isCreatingNote ? (
             <>
               <button
-                onClick={createNote}
+                onClick={createNoteTitle}
                 disabled={creatingNote}
                 style={{ width: "fit-content", margin: "0 auto" }}
               >
@@ -295,7 +299,7 @@ export default function ShowNotes({
                 />
               </label>
               <br />
-              <button style={{ width: "fit-content", margin: "0 auto" }} onClick={() => addNote(summarizeGroupsResponse)}>
+              <button style={{ width: "fit-content", margin: "0 auto" }} onClick={() => addNote(title, summarizeGroupsResponse)}>
                 Create new note
               </button>
               <br />
@@ -482,9 +486,10 @@ export default function ShowNotes({
                     ></div>
                     <button
                       className="button-summarize-note"
-                      onClick={() => summarizeNote(item.id)}
+                      onClick={() => {summarizeNote(item.id)}}
+                      disabled={loading}
                     >
-                      Summarize
+                      {loading && isEditingId == item.id ? "Summarizing note..." : "Summarize"}
                     </button>
                   </>
                 )}
