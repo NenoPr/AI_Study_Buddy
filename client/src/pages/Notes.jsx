@@ -14,17 +14,20 @@ export default function NotesPage() {
   const [isDisabled, setIsDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeComponent, setActiveComponent] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [groupsSelected, setGroupsSelected] = useState(null)
 
   useEffect(() => {
     fetchNotes();
     fetchGroups();
   }, []);
 
-
-  // useEffect(() => {
-  //   console.log("use effect groups: ", groups)
-  // },[groups])
-
+  
+  const getNotes = async () => {
+    setLoading(true);
+    fetchNotesGroups(groupsSelected);
+    setLoading(false);
+  };
 
   // Fetch notes only when token is ready
   const fetchNotes = async () => {
@@ -83,11 +86,12 @@ export default function NotesPage() {
 
   const fetchNotesGroups = async (selected) => {
     console.log("selected", selected);
-    const controller = new AbortController();
+    setGroupsSelected(selected)
     if (!selected || selected.length === 0) {
       await fetchNotes();
       return;
     }
+    const controller = new AbortController();
     const groupIds = selected.map((g) => Number(g.id)).filter(Boolean);
     console.log("groupIds: ", groupIds);
     setIsDisabled(true);
@@ -175,11 +179,17 @@ export default function NotesPage() {
         />
       </div>
       <br />
+      <button onClick={getNotes} disabled={loading}>
+        {loading ? "Fetching notes..." : "Fetch notes"}
+      </button>
+      <br />
       <ShowNotes
         notes={notes}
         refreshNotes={fetchNotes}
         onNoteAdded={addNoteToState}
         selectGroups={groups}
+        fetchNotesGroups={fetchNotesGroups}
+        getNotes={getNotes}
       />
     </div>
   );

@@ -5,13 +5,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
 
-export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
+export default function ShowNotes({ notes, refreshNotes, selectGroups, getNotes }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isEditingId, setIsEditingId] = useState("");
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [deletingNoteId, setDeletingNoteId] = useState(null);
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const [addToGroup, setAddToGroup] = useState(false);
@@ -21,11 +21,6 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
   const { token } = useAuth();
   const textareaRef = useRef(null);
 
-  const getNotes = async () => {
-    setLoading(true);
-    refreshNotes();
-    setLoading(false);
-  };
   useEffect(() => {
     console.log("activeGroups: ", activeGroups[0]);
   }, [activeGroups]);
@@ -92,7 +87,6 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
         method: "PUT",
         headers: {
           "Content-type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
         credentials: "include",
@@ -103,13 +97,8 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
       console.error(err);
       console.log(data, itemId);
     } finally {
-      if (!noteOpen) {
-        setIsEditingId("");
-        setTitle("");
-        setContent("");
-        getNotes();
-      }
       setIsEditingNote(false);
+      getNotes();
     }
   };
 
@@ -177,7 +166,7 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
         setContent("");
         getNotes();
       }
-      setGroupsToAdd([])
+      setGroupsToAdd([]);
       setAddToGroup(false);
       getNotesGroups();
     }
@@ -186,9 +175,6 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
 
   return (
     <div className="notes">
-      <button onClick={getNotes} disabled={loading}>
-        {loading ? "Fetching notes..." : "Fetch notes"}
-      </button>
       {noteOpen && (
         <div className="note-open">
           {isEditingNote ? (
@@ -214,36 +200,57 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
                 className="note-open-content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                // useRef={textareaRef}
               />
             </>
           ) : (
             <>
               <div className="note-open-buttons">
-                <div className="button-groups" onClick={getNotesGroups}></div>
-                <div
-                  className="button-edit"
-                  onClick={() => setIsEditingNote(true)}
-                ></div>
-                <div
-                  className="button-delete"
-                  onClick={() => {
-                    deleteNote(isEditingId);
-                    setAddToGroup(false);
-                    setActiveGroups([]);
-                  }}
-                ></div>
-                <div
-                  className="button-edit-cancel"
-                  onClick={() => {
-                    setIsEditingId("");
-                    setTitle("");
-                    setContent("");
-                    setNoteOpen(false);
-                    setIsEditingNote(false);
-                    setAddToGroup(false);
-                    setActiveGroups([]);
-                  }}
-                ></div>
+                {deletingNoteId == isEditingId ? (
+                  <>
+                    <span style={{ alignSelf: "center" }}>Are you sure?</span>
+                    <button
+                      onClick={() => {
+                        setAddToGroup(false);
+                        setActiveGroups([]);
+                        deleteNote(isEditingId);
+                      }}
+                    >
+                      Yes
+                    </button>
+                    <button onClick={() => setDeletingNoteId(null)}>No</button>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      className="button-groups"
+                      onClick={getNotesGroups}
+                    ></div>
+                    <div
+                      className="button-edit"
+                      onClick={() => setIsEditingNote(true)}
+                    ></div>
+                    <div
+                      className="button-delete"
+                      onClick={() => {
+                        setDeletingNoteId(isEditingId);
+                      }}
+                    ></div>
+                    <div
+                      className="button-edit-cancel"
+                      onClick={() => {
+                        setIsEditingId("");
+                        setTitle("");
+                        setContent("");
+                        setNoteOpen(false);
+                        setIsEditingNote(false);
+                        setAddToGroup(false);
+                        setActiveGroups([]);
+                        getNotes();
+                      }}
+                    ></div>
+                  </>
+                )}
               </div>
               {addToGroup && (
                 <>
@@ -307,16 +314,26 @@ export default function ShowNotes({ notes, refreshNotes, selectGroups }) {
                 </ReactMarkdown>
               </div>
               <div className="note-buttons-container">
-                <div
-                  className="button-delete"
-                  onClick={() => deleteNote(item.id)}
-                ></div>
-                <div
-                  className="button-summarize-note"
-                  onClick={() => summarizeNote(item.id)}
-                >
-                  Summarize
-                </div>
+                {deletingNoteId == item.id ? (
+                  <>
+                    <span style={{ alignSelf: "center" }}>Are you sure?</span>
+                    <button onClick={() => deleteNote(item.id)}>Yes</button>
+                    <button onClick={() => setDeletingNoteId(null)}>No</button>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      className="button-delete"
+                      onClick={() => setDeletingNoteId(item.id)}
+                    ></div>
+                    <button
+                      className="button-summarize-note"
+                      onClick={() => summarizeNote(item.id)}
+                    >
+                      Summarize
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

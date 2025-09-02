@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-export default function SummarizeNotes() {
+export default function AIHome() {
   const [summary, setSummary] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loadingSummarize, setLoadingSummarize] = useState(false);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [creatingNote, setCreatingNote] = useState(false);
-  const navigate = useNavigate();
 
   const { token } = useAuth();
 
@@ -64,24 +62,6 @@ export default function SummarizeNotes() {
     }
   };
 
-  const addNote = async (title, content) => {
-    try {
-      const res = await fetch("/api/notes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({title, content}),
-        credentials: "include"
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      alert(`Created a note under the title: ${title}`)
-    }
-  }
-
   const createNote = async () => {
     setCreatingNote(true);
 
@@ -94,17 +74,35 @@ export default function SummarizeNotes() {
         },
         body: JSON.stringify({ note: answer }),
         credentials: "include",
-      })
+      });
 
       const resData = await res.json();
-      addNote(resData.answer, answer)
+      addNote(resData.answer, answer);
     } catch (err) {
       console.error(err);
-      alert("Error creating note...")
+      alert("Error creating note...");
     } finally {
-      setCreatingNote(false)
+      setCreatingNote(false);
     }
-  }
+  };
+
+  const addNote = async (title, content) => {
+    try {
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, content }),
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      alert(`Created a note under the title: ${title}`);
+    }
+  };
 
   return (
     <div>
@@ -142,7 +140,11 @@ export default function SummarizeNotes() {
               {answer}
             </div>
             <br />
-            <button onClick={createNote}>{creatingNote ? "Creating note..." : "Create a note of this response"}</button>
+            <button onClick={createNote}>
+              {creatingNote
+                ? "Creating note..."
+                : "Create a note of this response"}
+            </button>
           </>
         )}
       </div>

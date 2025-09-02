@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [status, setStatus] = useState("checking"); // "checking" | "authed" | "guest"
   const [user, setUser] = useState(null);
 
+
   const checkAuth = async () => {
     try {
       const res = await fetch("/api/auth/me", { credentials: "include" });
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }) => {
   const login = (newToken) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
-    checkAuth()
+    checkAuth();
   };
 
   // frontend logout function in AuthContext
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     if (!res.ok) throw new Error("Login failed");
     setUser(null);
     setStatus("guest"); // <-- important: mark as guest
-    setToken(null)
+    setToken(null);
   };
 
   return (

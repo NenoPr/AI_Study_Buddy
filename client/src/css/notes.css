@@ -46,7 +46,7 @@
 .note-open-content {
     width: 95%;
     align-self: center;
-    height: 50vh;
+    min-height: 50vh; 
     padding: 1rem;
     font-size: 1rem;
     resize: none;

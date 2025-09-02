@@ -1,12 +1,14 @@
 import "./App.css";
-import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate  } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
-import SummarizeNotes from "./components/AIHome.jsx";
+import AIHome from "./components/AIHome.jsx";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Notes from "./pages/Notes";
+import { setNavigate } from "./utils/navigate.js";
+import "./utils/fetchInterceptor.mjs";
 
 const ProtectedRoute = ({ children }) => {
   const { status } = useAuth();
@@ -17,7 +19,14 @@ const ProtectedRoute = ({ children }) => {
   return children; // authed → show page
 };
 
-function App() {
+function AppWrapper() {
+  const navigate = useNavigate();
+
+  // register globally on mount
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+
   return (
     <main>
       <Navbar />
@@ -26,7 +35,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <SummarizeNotes />
+              <AIHome />
             </ProtectedRoute>
           }
         />
@@ -45,4 +54,8 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+      <AppWrapper />
+  );
+}
