@@ -64,7 +64,7 @@ router.post("/askNote", async (req, res) => {
         {
           role: "system",
           content:
-            "You are a helpful study assistant. Answer the students questions.",
+            "You are a helpful study assistant. Answer the user's questions. Use the .md format to format them, make them look easy to understand and pleasing to see.",
         },
         {
           role: "user",

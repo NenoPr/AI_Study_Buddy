@@ -20,7 +20,7 @@ export default function ShowNotes({
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState(null);
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const [addToGroup, setAddToGroup] = useState(false);
@@ -67,8 +67,8 @@ export default function ShowNotes({
   };
 
   const summarizeNote = async (id) => {
-    setLoading(true)
-    setIsEditingId(id)
+    setLoading(true);
+    setIsEditingId(id);
     try {
       const res = await fetch(`/api/ai/summarize/${id}`, {
         method: "GET",
@@ -79,12 +79,12 @@ export default function ShowNotes({
       });
 
       const data = await res.json();
-      setSummarizeGroupsResponse(data.summary)
+      setSummarizeGroupsResponse(data.summary);
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false)
-      setIsEditingId("")
+      setLoading(false);
+      setIsEditingId("");
     }
   };
 
@@ -209,11 +209,11 @@ export default function ShowNotes({
       console.error(err);
       alert("Error creating note...");
     } finally {
-      setCreatingNote(false);
     }
   };
 
-  const addNote = async ( AiTitle, content) => {
+  const addNote = async (AiTitle, content) => {
+    setCreatingNote(true);
     const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
     try {
       const res = await fetch("/api/notes", {
@@ -233,8 +233,9 @@ export default function ShowNotes({
       console.error(err);
     } finally {
       alert(`Created a note under the title: ${AiTitle}`);
-      setTitle("")
-      setIsCreatingNote(false)
+      setTitle("");
+      setIsCreatingNote(false);
+      setCreatingNote(false);
     }
   };
 
@@ -262,11 +263,11 @@ export default function ShowNotes({
               <button
                 onClick={createNoteTitle}
                 disabled={creatingNote}
-                style={{ width: "fit-content", margin: "0 auto" }}
+                style={{ width: "fit-content", marginBottom: "1rem" }}
               >
                 Let AI handle it...
               </button>
-              <label for="title">Title:</label>
+              <label htmlFor="title">Title:</label>
               <input
                 name="title"
                 type="text"
@@ -299,16 +300,21 @@ export default function ShowNotes({
                 />
               </label>
               <br />
-              <button style={{ width: "fit-content", margin: "0 auto" }} onClick={() => addNote(title, summarizeGroupsResponse)}>
-                Create new note
-              </button>
-              <br />
-              <button
-                onClick={() => setIsCreatingNote(false)}
-                style={{ width: "fit-content", margin: "0 auto" }}
-              >
-                Cancel
-              </button>
+              <div style={{display: "flex", gap: "1rem"}}>
+                <button
+                  style={{ width: "fit-content" }}
+                  onClick={() => addNote(title, summarizeGroupsResponse)}
+                >
+                  Create new note
+                </button>
+                <br />
+                <button
+                  onClick={() => setIsCreatingNote(false)}
+                  style={{ width: "fit-content" }}
+                >
+                  Cancel
+                </button>
+              </div>
             </>
           ) : null}
           <br />
@@ -486,10 +492,14 @@ export default function ShowNotes({
                     ></div>
                     <button
                       className="button-summarize-note"
-                      onClick={() => {summarizeNote(item.id)}}
+                      onClick={() => {
+                        summarizeNote(item.id);
+                      }}
                       disabled={loading}
                     >
-                      {loading && isEditingId == item.id ? "Summarizing note..." : "Summarize"}
+                      {loading && isEditingId == item.id
+                        ? "Summarizing note..."
+                        : "Summarize"}
                     </button>
                   </>
                 )}
