@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useGroupSummary } from "../context/GroupsSummaryContext";
 import Select from "react-select";
 import AddNote from "../components/Notes/AddNote";
 import AddGroup from "../components/Notes/AddGroups";
@@ -10,15 +11,16 @@ import "../css/notes.css";
 export default function NotesPage() {
   const { token } = useAuth();
   const [notes, setNotes] = useState([]);
-  const [groups, setGroups] = useState([]);
+  // const [groups, setGroups] = useState([]);
   const [isDisabled, setIsDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeComponent, setActiveComponent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
-  const [groupsSelected, setGroupsSelected] = useState(null);
-  const [summarizeGroupsResponse, setSummarizeGroupsResponse] = useState("")
+  const { summarizeGroupsResponse, setSummarizeGroupsResponse, groupsSelected, setGroupsSelected, groups, setGroups } = useGroupSummary();
+  // const [groupsSelected, setGroupsSelected] = useState(null);
+  // const [summarizeGroupsResponse, setSummarizeGroupsResponse] = useState("")
 
   useEffect(() => {
     fetchNotes();
@@ -180,13 +182,13 @@ export default function NotesPage() {
           margin: "1rem",
         }}
       >
-        <AddNote
+        {/* <AddNote
           onNoteAdded={addNoteToState}
           refreshNotes={fetchNotes}
           selectGroups={groups}
           setActiveComponent={setActiveComponent}
           activeComponent={activeComponent}
-        />
+        /> */}
 
         <AddGroup
           fetchGroups={fetchGroups}

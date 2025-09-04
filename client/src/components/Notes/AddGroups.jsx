@@ -59,7 +59,6 @@ export default function AddNote({ fetchGroups, setActiveComponent, activeCompone
             {loading ? "Adding group..." : "Add group"}
           </button>
           <button onClick={() => {setGroupAdd(false); setActiveComponent(null)}}>Cancel</button>
-          <div style={{border: "1px solid black", marginTop: "1rem"}}></div>
         </form>
             </>
       ) : (

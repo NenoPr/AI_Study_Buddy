@@ -1,7 +1,8 @@
 import "./App.css";
 import { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate  } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
+import { GroupSummaryProvider } from "./context/GroupsSummaryContext.jsx";
 import AIHome from "./components/AIHome.jsx";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
@@ -43,7 +44,9 @@ function AppWrapper() {
           path="/notes"
           element={
             <ProtectedRoute>
-              <Notes />
+              <GroupSummaryProvider>
+                <Notes />
+              </GroupSummaryProvider>
             </ProtectedRoute>
           }
         />
@@ -55,7 +58,5 @@ function AppWrapper() {
 }
 
 export default function App() {
-  return (
-      <AppWrapper />
-  );
+  return <AppWrapper />;
 }

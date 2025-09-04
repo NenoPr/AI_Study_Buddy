@@ -1,19 +1,26 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import Select from "react-select";
 
-export default function AddNote({ refreshNotes, onNoteAdded, selectGroups, setActiveComponent, activeComponent }) {
+export default function AddNote({
+  refreshNotes,
+  onNoteAdded,
+  selectGroups,
+  setActiveComponent,
+  activeComponent,
+  setAddNoteBool,
+}) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [groups, setGroups] = useState("")
+  const [groups, setGroups] = useState("");
   const [loading, setLoading] = useState(false);
   const [noteAdd, setNoteAdd] = useState(false);
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const { token } = useAuth();
-
-  if (activeComponent && activeComponent !== "addNote") return
 
   // ✅ This function is async
   const addNote = async (e) => {
@@ -34,7 +41,7 @@ export default function AddNote({ refreshNotes, onNoteAdded, selectGroups, setAc
       const data = await res.json();
       if (data) {
         //onNoteAdded(data); // ✅ push new note into parent state
-        refreshNotes()
+        refreshNotes();
       }
     } catch (err) {
       console.error(err);
@@ -43,64 +50,77 @@ export default function AddNote({ refreshNotes, onNoteAdded, selectGroups, setAc
       setNoteAdd(false);
       setTitle("");
       setContent("");
-      setActiveComponent(null)
+      setAddNoteBool(false)
       // refreshNotes();
     }
   };
 
   function updateGroups(selected) {
     const groupIds = selected.map((g) => Number(g.id)).filter(Boolean);
-    setGroups(groupIds)
+    setGroups(groupIds);
   }
 
   return (
-    <div>
-      {noteAdd ? (<>
-        <h3>Add Note</h3>
-        <form onSubmit={addNote} name="addNote">
+    <div className="note-open">
+      <form onSubmit={addNote} name="addNote">
+        <>
           <h4>Title</h4>
           <input
-            type="text"
-            placeholder="Title..."
+            className="note-open-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            />
-          <br />
+          />
           <h4>Content</h4>
-          <input
-            type="text"
-            placeholder="Content..."
+          <textarea
+            className="note-open-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            />
-          <br />
-          <h4>Groups</h4>
-          <Select
-            options={selectGroups}
-            isMulti
-            isDisabled={selectIsDisabled}
-            isLoading={selectIsLoading}
-            styles={{
-              control: (baseStyles, state) => ({
-                ...baseStyles,
-                borderColor: state.isFocused ? 'grey' : 'red',
-                width: "50%",
-                margin: "0 auto"
-              }),
-            }}
-            onChange={updateGroups}
-            />
-          <br />
+            // useRef={textareaRef}
+          />
+        </>
+        <br />
+        <h4>Groups</h4>
+        <Select
+          options={selectGroups}
+          isMulti
+          isDisabled={selectIsDisabled}
+          isLoading={selectIsLoading}
+          styles={{
+            control: (baseStyles, state) => ({
+              ...baseStyles,
+              borderColor: state.isFocused ? "grey" : "red",
+              width: "50%",
+              margin: "0 auto",
+            }),
+          }}
+          onChange={updateGroups}
+        />
+        <br />
+        <div className="buttons">
           <button type="submit" disabled={loading}>
             {loading ? "Adding note..." : "Add note"}
           </button>
-          <button onClick={() => {setNoteAdd(false); setActiveComponent(null)}}>Cancel</button>
-          <div style={{border: "1px solid black", marginTop: "1rem"}}></div>
-        </form>
-            </>
-      ) : (
-        <button onClick={() => {setNoteAdd(true); setActiveComponent("addNote")}}>Add Note</button>
-      )}
+          <button
+            disabled={loading}
+            onClick={() => {
+              setNoteAdd(false);
+              setAddNoteBool(false);
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
+
+//   <button
+//     onClick={() => {
+//       setNoteAdd(true);
+//       setActiveComponent("addNote");
+//     }}
+//   >
+//     Add Note
+//   </button>
+// )}

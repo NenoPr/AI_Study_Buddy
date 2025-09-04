@@ -93,6 +93,24 @@
     
 }
 
+.note-add {
+    align-self: center;
+    align-content: center;
+    background: url(add.svg) no-repeat center;
+    background-size: contain;
+    width: 10rem;
+    height: 10rem;
+}
+
+.note-add-words {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(206, 236, 255);
+    padding: .7rem;    
+}
+
 .note-contents {
     display: flex;
     flex-direction: column;

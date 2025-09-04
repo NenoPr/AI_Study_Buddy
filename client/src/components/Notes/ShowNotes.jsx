@@ -4,6 +4,8 @@ import { useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
+import AddNote from "./AddNote";
+import SummarizeGroupResponse from "./SummarizeGroupResponse";
 
 export default function ShowNotes({
   notes,
@@ -13,6 +15,7 @@ export default function ShowNotes({
   summarizeGroupsResponse,
   setSummarizeGroupsResponse,
   groupsSelected,
+  onNoteAdded,
 }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -28,6 +31,8 @@ export default function ShowNotes({
   const [activeGroups, setActiveGroups] = useState([]);
   const [creatingNote, setCreatingNote] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
+  const [addNoteBool, setAddNoteBool] = useState(false);
+  const [tabs, setTabs] = useState([]);
   const { token } = useAuth();
   const textareaRef = useRef(null);
 
@@ -241,93 +246,29 @@ export default function ShowNotes({
 
   return (
     <div className="notes">
-      {summarizeGroupsResponse ? (
-        <div className="summary">
-          <div style={{ fontWeight: "bold", fontSize: "1.5rem" }}>
-            Response:
-          </div>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {summarizeGroupsResponse}
-          </ReactMarkdown>
-          {isCreatingNote ? null : (
-            <button
-              style={{ width: "fit-content" }}
-              onClick={() => setIsCreatingNote(true)}
-            >
-              Create a new note
-            </button>
-          )}
-          <br />
-          {isCreatingNote ? (
-            <>
-              <button
-                onClick={createNoteTitle}
-                disabled={creatingNote}
-                style={{ width: "fit-content", marginBottom: "1rem" }}
-              >
-                Let AI handle it...
-              </button>
-              <label htmlFor="title">Title:</label>
-              <input
-                name="title"
-                type="text"
-                placeholder="Title..."
-                style={{ width: "20rem" }}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <br />
-              <label>
-                Groups:
-                <Select
-                  options={selectGroups}
-                  defaultValue={groupsSelected}
-                  isMulti
-                  isDisabled={selectIsDisabled}
-                  isLoading={selectIsLoading}
-                  onChange={(data) => {
-                    const groupIds = data
-                      .map((data) => Number(data.id))
-                      .filter(Boolean);
-                    setGroupsToAdd(groupIds);
-                  }}
-                  styles={{
-                    control: (baseStyles, state) => ({
-                      ...baseStyles,
-                      borderColor: state.isFocused ? "grey" : "red",
-                      width: "50%",
-                    }),
-                  }}
-                />
-              </label>
-              <br />
-              <div style={{display: "flex", gap: "1rem"}}>
-                <button
-                  style={{ width: "fit-content" }}
-                  onClick={() => addNote(title, summarizeGroupsResponse)}
-                >
-                  Create new note
-                </button>
-                <br />
-                <button
-                  onClick={() => setIsCreatingNote(false)}
-                  style={{ width: "fit-content" }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </>
-          ) : null}
-          <br />
-          <button
-            style={{ width: "fit-content" }}
-            onClick={() => {
-              setSummarizeGroupsResponse(null), getNotes();
-            }}
-          >
-            Return
-          </button>
-        </div>
+      {addNoteBool ? (
+        <AddNote
+          setAddNoteBool={setAddNoteBool}
+          onNoteAdded={onNoteAdded}
+          refreshNotes={refreshNotes}
+          selectGroups={selectGroups}
+          setIsEditingNote={setIsEditingNote}
+        />
+      ) : summarizeGroupsResponse ? (
+        <SummarizeGroupResponse
+          creatingNote={creatingNote}
+          isCreatingNote={isCreatingNote}
+          setIsCreatingNote={setIsCreatingNote}
+          setTitle={setTitle}
+          setGroupsToAdd={setGroupsToAdd}
+          addNote={addNote}
+          getNotes={getNotes}
+          selectIsDisabled={selectIsDisabled}
+          selectIsLoading={selectIsLoading}
+          createNoteTitle={createNoteTitle}
+        />
       ) : (
+        // Renders note edit screen
         noteOpen && (
           <div className="note-open">
             {isEditingNote ? (
@@ -454,8 +395,29 @@ export default function ShowNotes({
           </div>
         )
       )}
-      {notes && !noteOpen && !summarizeGroupsResponse && (
+      {/* Renders all selected notes  */}
+      {notes && !noteOpen && !summarizeGroupsResponse && !addNoteBool && (
         <div className="note-container">
+          <div className="note-card">
+            <div
+              className="note-contents"
+              onClick={() => {
+                setAddNoteBool(true);
+              }}
+            >
+              <div className="note-content note-add"></div>
+            </div>
+            <div
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
+              className="note-add-words"
+            >
+              Add note
+            </div>
+          </div>
           {notes.map((item, index) => (
             <div key={index} className="note-card">
               <div
@@ -510,53 +472,4 @@ export default function ShowNotes({
       )}
     </div>
   );
-}
-
-{
-  /* <div className="note-card" key={index}>
-                <input
-                  className="note-title"
-                  name="itemTitle"
-                  type="text"
-                  value={title}
-                  style={{
-                    width: "90%",
-                    textAlign: "center",
-                    padding: ".5rem",
-                    marginTop: "1rem",
-                    color: "black",
-                    fontWeight: "bolder",
-                  }}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-                <div className="line"></div>
-                <textarea
-                  className="note-content"
-                  ref={textareaRef}
-                  name="itemContent"
-                  value={content}
-                  wrap="soft"
-                  onChange={(e) => setContent(e.target.value)}
-                />
-                <div className="note-buttons-container">
-                  <div
-                    className="button-edit-save"
-                    onClick={() => saveNote(title, content, item.id)}
-                  ></div>
-                  <div
-                    className="button-edit-cancel"
-                    onClick={() => {
-                      setIsEditingId("");
-                      setTitle(""), setContent("");
-                    }}
-                  ></div>
-                </div>
-              </div> */
-}
-
-{
-  /* <div
-                    className="button-edit"
-                    onClick={() => editNote(item.title, item.content, item.id)}
-                  ></div> */
 }
