@@ -8,6 +8,7 @@ export default function SummarizeGroupResponse(
   {creatingNote,
   isCreatingNote,
   setIsCreatingNote,
+  title,
   setTitle,
   setGroupsToAdd,
   addNote,

@@ -259,6 +259,7 @@ export default function ShowNotes({
           creatingNote={creatingNote}
           isCreatingNote={isCreatingNote}
           setIsCreatingNote={setIsCreatingNote}
+          title={title}
           setTitle={setTitle}
           setGroupsToAdd={setGroupsToAdd}
           addNote={addNote}
