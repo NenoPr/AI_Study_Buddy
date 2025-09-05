@@ -6,6 +6,7 @@ import OpenAI from "openai";
 const router = Router();
 router.use(authenticateToken);
 
+// Answers the users question
 router.post("/ask", async (req, res) => {
   console.log(req.body.question);
   try {
@@ -22,7 +23,7 @@ router.post("/ask", async (req, res) => {
         {
           role: "system",
           content:
-            "You are a helpful study assistant. Answer the students questions.",
+            "You are a helpful study assistant. Answer the students questions. Use the .md format to format them, make them look easy to understand and pleasing to see.",
         },
         { role: "user", content: `Question: ${req.body.question}` },
       ],
@@ -36,6 +37,7 @@ router.post("/ask", async (req, res) => {
   }
 });
 
+// Answers a question regarding a note
 router.post("/askNote", async (req, res) => {
   console.log(req.body.question);
   try {
@@ -81,6 +83,7 @@ router.post("/askNote", async (req, res) => {
   }
 });
 
+// Summarizes all notes
 router.get("/summarize", async (req, res) => {
   try {
     const userId = req.user?.userId;
@@ -124,6 +127,7 @@ router.get("/summarize", async (req, res) => {
   }
 });
 
+// Summarize a note
 router.get("/summarize/:id", async (req, res) => {
   try {
     const userId = req.user?.userId;
@@ -177,7 +181,7 @@ router.post("/summarize/groupNotes", async (req, res) => {
   try {
     const userId = req.user?.userId;
     const group_ids = req.body.group_ids;
-    console.log("group_ids: ",group_ids)
+    console.log("group_ids: ", group_ids);
     const result = [];
 
     const client = await req.pool.connect();
@@ -192,8 +196,7 @@ router.post("/summarize/groupNotes", async (req, res) => {
         note_ids.push(res.rows);
       }
       const allGroupNotes = note_ids.flat();
-      console.log("allGroupNotes: ", allGroupNotes)
-      
+      console.log("allGroupNotes: ", allGroupNotes);
 
       if (note_ids.length === 0)
         return res
@@ -201,23 +204,23 @@ router.post("/summarize/groupNotes", async (req, res) => {
           .json({ error: "No notes found with provided groups..." });
 
       for (const note_id of allGroupNotes) {
-        const res = await client.query(
-          "SELECT * FROM notes WHERE id=$1",
-          [note_id.note_id]
-        );
-        console.log("note_id: ", note_id.note_id)
+        const res = await client.query("SELECT * FROM notes WHERE id=$1", [
+          note_id.note_id,
+        ]);
+        console.log("note_id: ", note_id.note_id);
         result.push(res.rows.flat());
       }
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Internal server error" });
     }
-    console.log("result: ", result)
-    const notesText = result.flat()
+    console.log("result: ", result);
+    const notesText = result
+      .flat()
       .map((note) => `${note.title}: ${note.content}`)
       .join("\n\n");
 
-    console.log("notesText: ", notesText)
+    console.log("notesText: ", notesText);
 
     // Call OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -235,7 +238,7 @@ router.post("/summarize/groupNotes", async (req, res) => {
         { role: "user", content: `Here are my notes: \n${notesText}\n\n ` },
       ],
     });
-    console.log("Response: ",response.choices[0].message.content)
+    console.log("Response: ", response.choices[0].message.content);
     const summary = response.choices[0].message.content;
     res.json({ summary });
   } catch (err) {
@@ -244,12 +247,11 @@ router.post("/summarize/groupNotes", async (req, res) => {
   }
 });
 
+// Creates title for a note
 router.post("/createNote", async (req, res) => {
   console.log(req.body.note);
   try {
     const userId = req.user?.userId;
-    if (!userId)
-      return res.status(401).json({ error: "Invalid token: user ID missing" });
 
     // Call OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -280,4 +282,59 @@ router.post("/createNote", async (req, res) => {
   }
 });
 
+router.get("/createQuiz/:id", async (req, res) => {
+  const userId = req.user?.userId;
+  const noteId = req.params.id;
+  const JSONStructure = `"\"question\": \"Question string\",\n  \"options\": {\n    \"a\": \"option string\",\n    \"b\": \"option string\",\n    \"c\": \"option string\",\n    \"d\": \"option string\"\n  },\n  \"correct_answer\": \"correct option string, a,b,c or d character\",\n  \"explanation\": \"The correct answer explanation string\""`;
+  try {
+
+    // Get note
+    const result = await req.pool.query(
+      "SELECT content FROM notes WHERE user_id = $1 AND id = $2",
+      [userId, noteId]
+    );
+
+    const note = result.rows[0].content;
+
+    console.log(note)
+
+    // Call OpenAI
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      temperature: 0.3, // low creativity to reduce hallucinations
+      max_tokens: 1000,
+      messages: [
+        {
+          role: "system",
+          content: `Create a quiz for the given note. Use this example format to structure the quiz in json: ${JSONStructure}. VERY important: Send the quiz in json format! Do not stringify it like in the example format. If there is multiple question send the json questions in an array with the prefix "questions". Don't send anything else but the json object.`,
+        },
+        {
+          role: "user",
+          content: `Here is the note: ${note}`,
+        },
+      ],
+    });
+
+    const answer = response.choices[0].message.content;
+    res.json( answer );
+    console.log(answer);
+  } catch (err) {
+    console.error("AI route error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
+
+// Make it structured like this:
+// "question": "Question string",
+// "options": {
+//   "a": "option string",
+//   "b": "option string",
+//   "c": "option string",
+//   "d": "option string"
+// },
+// "correct_answer": "correct option string, a,b,c or d character",
+// "explanation": "The correct answer explanation string"

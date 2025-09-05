@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import Select from "react-select";
 import AddNote from "./AddNote";
 import SummarizeGroupResponse from "./SummarizeGroupResponse";
+import Quiz from "./Quiz";
 
 export default function ShowNotes({
   notes,
@@ -32,6 +33,8 @@ export default function ShowNotes({
   const [creatingNote, setCreatingNote] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [addNoteBool, setAddNoteBool] = useState(false);
+  const [quizActive, setQuizActive] = useState(false);
+  const [quizJSON, setQuizJSON] = useState(null);
   const [tabs, setTabs] = useState([]);
   const { token } = useAuth();
   const textareaRef = useRef(null);
@@ -244,6 +247,29 @@ export default function ShowNotes({
     }
   };
 
+  const createQuiz = async (id) => {
+    setLoading(true);
+    setIsEditingId(id);
+    try {
+      const res = await fetch(`/api/ai/createQuiz/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      const dataJSON = JSON.parse(data);
+      setQuizJSON(dataJSON);
+
+      console.log(dataJSON);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setIsEditingId("");
+      setQuizActive(true);
+    }
+  };
+
   return (
     <div className="notes">
       {addNoteBool ? (
@@ -268,6 +294,8 @@ export default function ShowNotes({
           selectIsLoading={selectIsLoading}
           createNoteTitle={createNoteTitle}
         />
+      ) : quizActive ? (
+        <Quiz quizJSON={quizJSON} setQuizActive={setQuizActive} />
       ) : (
         // Renders note edit screen
         noteOpen && (
@@ -397,7 +425,7 @@ export default function ShowNotes({
         )
       )}
       {/* Renders all selected notes  */}
-      {notes && !noteOpen && !summarizeGroupsResponse && !addNoteBool && (
+      {notes && !noteOpen && !summarizeGroupsResponse && !addNoteBool && !quizActive && (
         <div className="note-container">
           <div className="note-card">
             <div
@@ -449,10 +477,6 @@ export default function ShowNotes({
                   </>
                 ) : (
                   <>
-                    <div
-                      className="button-delete"
-                      onClick={() => setDeletingNoteId(item.id)}
-                    ></div>
                     <button
                       className="button-summarize-note"
                       onClick={() => {
@@ -464,6 +488,19 @@ export default function ShowNotes({
                         ? "Summarizing note..."
                         : "Summarize"}
                     </button>
+                    <button
+                      className="button-quiz-note"
+                      onClick={() => createQuiz(item.id)}
+                      disabled={loading}
+                    >
+                      {loading && isEditingId == item.id
+                        ? "Quizing note..."
+                        : "Quiz"}
+                    </button>
+                    <div
+                      className="button-delete"
+                      onClick={() => setDeletingNoteId(item.id)}
+                    ></div>
                   </>
                 )}
               </div>

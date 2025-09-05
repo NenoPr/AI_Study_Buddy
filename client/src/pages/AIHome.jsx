@@ -148,7 +148,7 @@ export default function AIHome() {
   return (
     <div>
       <br />
-      <button onClick={handleSummarize} disabled={loadingSummarize}>
+      {/* <button onClick={handleSummarize} disabled={loadingSummarize}>
         {loadingSummarize ? "Summarizing..." : "Summarize all Notes"}
       </button>
       <div style={{ margin: "1rem" }}></div>
@@ -159,7 +159,7 @@ export default function AIHome() {
             {summary}
           </div>
         </>
-      )}
+      )} */}
       <br />
       <form onSubmit={handleQuestion}>
         <textarea

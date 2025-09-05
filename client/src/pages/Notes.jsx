@@ -243,6 +243,14 @@ export default function NotesPage() {
             ? "Summarizing groups..."
             : "Summarize selected groups"}
         </button>
+        <button disabled={loading}>
+          {loadingGroups
+            ? "Creating quiz..."
+            : "Create a quiz from selected groups"}
+        </button>
+        <div style={{display: "flex", justifyContent: "right", flex: "1"}}>
+          <button>Sort By:</button>
+        </div>
       </div>
       <div
         style={{
