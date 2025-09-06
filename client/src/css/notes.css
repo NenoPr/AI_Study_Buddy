@@ -25,6 +25,13 @@
     flex-wrap: wrap;
 }
 
+.quiz-open {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
 .summary {
     display: flex;
     flex-direction: column;
