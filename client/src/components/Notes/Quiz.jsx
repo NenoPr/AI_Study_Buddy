@@ -26,6 +26,7 @@ export default function Quiz({ quizJSON, setQuizActive }) {
     e.preventDefault();
     console.log(e.target);
     const formData = new FormData(e.target);
+    let corrAnswers = 0;
     let newAnswers = Object.fromEntries(
       Array.from(formData.entries()).map(([questionId, answer]) => [
         questionId,
@@ -44,11 +45,12 @@ export default function Quiz({ quizJSON, setQuizActive }) {
           newAnswers[`option-${key}`].answer
         );
         newAnswers[`option-${key}`].isCorrect = true;
-        setCorrectAnswers(correctAnswers + 1);
+        corrAnswers= corrAnswers + 1;
       }
     });
     console.log("Selected answers after check: ", newAnswers);
     setAnswers(newAnswers);
+    setCorrectAnswers(corrAnswers);
     setQuizGraded(true);
   }
 
