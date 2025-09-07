@@ -7,6 +7,7 @@ import AddGroup from "../components/Notes/AddGroups";
 import DeleteGroup from "../components/Notes/DeleteGroup";
 import ShowNotes from "../components/Notes/ShowNotes";
 import "../css/notes.css";
+import { useQuizContext } from "../context/QuizContext";
 
 export default function NotesPage() {
   const { token } = useAuth();
@@ -18,7 +19,16 @@ export default function NotesPage() {
   const [loading, setLoading] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
-  const { summarizeGroupsResponse, setSummarizeGroupsResponse, groupsSelected, setGroupsSelected, groups, setGroups } = useGroupSummary();
+  const {
+    summarizeGroupsResponse,
+    setSummarizeGroupsResponse,
+    groupsSelected,
+    setGroupsSelected,
+    groups,
+    setGroups,
+  } = useGroupSummary();
+  const { quizActive, setQuizActive, quizJSON, setQuizJSON } =
+    useQuizContext();
   // const [groupsSelected, setGroupsSelected] = useState(null);
   // const [summarizeGroupsResponse, setSummarizeGroupsResponse] = useState("")
 
@@ -144,7 +154,7 @@ export default function NotesPage() {
     setIsLoading(true);
     setLoadingGroups(true);
     setLoadingNotes(false);
-    console.log("groupIds: ", groupIds)
+    console.log("groupIds: ", groupIds);
 
     try {
       const request = await fetch(`/api/ai/summarize/groupNotes`, {
@@ -156,11 +166,10 @@ export default function NotesPage() {
       });
       if (!request.ok) throw new Error(`Error ${request.status}`);
 
-
       // Wait for all to finish
       const results = await request.json();
-      console.log("Response: ", results)
-      setSummarizeGroupsResponse(results.summary)
+      console.log("Response: ", results);
+      setSummarizeGroupsResponse(results.summary);
     } catch (err) {
       console.error(err);
     } finally {
@@ -169,6 +178,32 @@ export default function NotesPage() {
       setLoadingGroups(false);
       setLoadingNotes(false);
       return () => controller.abort();
+    }
+  };
+
+  const createQuizGroups = async (id) => {
+    setLoading(true);
+    // setIsEditingId(id);
+    const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
+    try {
+      const res = await fetch(`/api/ai/createQuiz/group`, {
+        method: "POST",
+        headers: {"Content-type": "application/json"},
+        body: JSON.stringify({ groups: groupIds }),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      const dataJSON = JSON.parse(data);
+      setQuizJSON(dataJSON);
+
+      console.log(dataJSON);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setQuizActive(true);
+      // setIsEditingId("");
     }
   };
 
@@ -243,12 +278,12 @@ export default function NotesPage() {
             ? "Summarizing groups..."
             : "Summarize selected groups"}
         </button>
-        <button disabled={loading}>
+        <button disabled={loading} onClick={createQuizGroups}>
           {loadingGroups
             ? "Creating quiz..."
             : "Create a quiz from selected groups"}
         </button>
-        <div style={{display: "flex", justifyContent: "right", flex: "1"}}>
+        <div style={{ display: "flex", justifyContent: "right", flex: "1" }}>
           <button>Sort By:</button>
         </div>
       </div>

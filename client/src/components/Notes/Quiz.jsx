@@ -9,18 +9,6 @@ export default function Quiz({ quizJSON, setQuizActive }) {
   const [answers, setAnswers] = useState({});
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [quizGraded, setQuizGraded] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [groups, setGroups] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [noteAdd, setNoteAdd] = useState(false);
-  const [selectIsDisabled, setSelectIsDisabled] = useState(false);
-  const [selectIsLoading, setSelectIsLoading] = useState(false);
-  const { token } = useAuth();
-
-  useEffect(() => {
-    console.log(answers);
-  }, [answers]);
 
   function submitQuiz(e) {
     e.preventDefault();
@@ -38,12 +26,6 @@ export default function Quiz({ quizJSON, setQuizActive }) {
       console.log(question.correct_answer);
       console.log(newAnswers[`option-${key}`].answer);
       if (question.correct_answer == newAnswers[`option-${key}`].answer) {
-        console.log(
-          "Correct!",
-          question.correct_answer,
-          " == ",
-          newAnswers[`option-${key}`].answer
-        );
         newAnswers[`option-${key}`].isCorrect = true;
         corrAnswers= corrAnswers + 1;
       }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRef, useEffect } from "react";
+import { useQuizContext } from "../../context/QuizContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
@@ -33,11 +34,11 @@ export default function ShowNotes({
   const [creatingNote, setCreatingNote] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [addNoteBool, setAddNoteBool] = useState(false);
-  const [quizActive, setQuizActive] = useState(false);
-  const [quizJSON, setQuizJSON] = useState(null);
   const [tabs, setTabs] = useState([]);
   const { token } = useAuth();
   const textareaRef = useRef(null);
+  const { quizActive, setQuizActive, quizJSON, setQuizJSON } =
+    useQuizContext();
 
   useEffect(() => {
     console.log("activeGroups: ", activeGroups[0]);
@@ -93,6 +94,29 @@ export default function ShowNotes({
     } finally {
       setLoading(false);
       setIsEditingId("");
+    }
+  };
+
+  const createQuiz = async (id) => {
+    setLoading(true);
+    setIsEditingId(id);
+    try {
+      const res = await fetch(`/api/ai/createQuiz/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      const dataJSON = JSON.parse(data);
+      setQuizJSON(dataJSON);
+
+      console.log(dataJSON);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setIsEditingId("");
+      setQuizActive(true);
     }
   };
 
@@ -247,28 +271,7 @@ export default function ShowNotes({
     }
   };
 
-  const createQuiz = async (id) => {
-    setLoading(true);
-    setIsEditingId(id);
-    try {
-      const res = await fetch(`/api/ai/createQuiz/${id}`, {
-        method: "GET",
-        credentials: "include",
-      });
 
-      const data = await res.json();
-      const dataJSON = JSON.parse(data);
-      setQuizJSON(dataJSON);
-
-      console.log(dataJSON);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setIsEditingId("");
-      setQuizActive(true);
-    }
-  };
 
   return (
     <div className="notes">

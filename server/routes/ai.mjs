@@ -287,7 +287,6 @@ router.get("/createQuiz/:id", async (req, res) => {
   const noteId = req.params.id;
   const JSONStructure = `"\"question\": \"Question string\",\n  \"options\": {\n    \"a\": \"option string\",\n    \"b\": \"option string\",\n    \"c\": \"option string\",\n    \"d\": \"option string\"\n  },\n  \"correct_answer\": \"correct option string, a,b,c or d character\",\n  \"explanation\": \"The correct answer explanation string\""`;
   try {
-
     // Get note
     const result = await req.pool.query(
       "SELECT content FROM notes WHERE user_id = $1 AND id = $2",
@@ -296,7 +295,7 @@ router.get("/createQuiz/:id", async (req, res) => {
 
     const note = result.rows[0].content;
 
-    console.log(note)
+    console.log(note);
 
     // Call OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -318,7 +317,67 @@ router.get("/createQuiz/:id", async (req, res) => {
     });
 
     const answer = response.choices[0].message.content;
-    res.json( answer );
+    res.json(answer);
+    console.log(answer);
+  } catch (err) {
+    console.error("AI route error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/createQuiz/group", async (req, res) => {
+  const userId = req.user?.userId;
+  const groups = req.body.groups;
+  if (!groups){
+    res.json("No groups selected...")
+    return
+  }
+  const JSONStructure = `"\"question\": \"Question string\",\n  \"options\": {\n    \"a\": \"option string\",\n    \"b\": \"option string\",\n    \"c\": \"option string\",\n    \"d\": \"option string\"\n  },\n  \"correct_answer\": \"correct option string, a,b,c or d character\",\n  \"explanation\": \"The correct answer explanation string\""`;
+  const client = await req.pool.connect();
+  try {
+    // Get note
+    const note_ids = [];
+    for (const id of groups) {
+      const result = await client.query(
+        "SELECT note_id FROM note_groups WHERE group_id=$1",
+        [id]
+      );
+      note_ids.push(result.rows);
+    }
+    const allGroupNotes = note_ids.flat();
+    console.log(allGroupNotes);
+
+    const notesResult = [];
+    for (const note of allGroupNotes) {
+      const res = await client.query("SELECT content FROM notes WHERE id=$1", [
+        note.note_id,
+      ]);
+      notesResult.push(res.rows[0].content);
+    }
+
+    const notesText = notesResult.join("\n\n");
+    console.log(notesText);
+    // Call OpenAI
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      temperature: 0.3, // low creativity to reduce hallucinations
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "system",
+          content: `Create a quiz for the given notes. Use this example format to structure the quiz in json: ${JSONStructure}. VERY important: Send the quiz in json format! Do not stringify it like in the example format. If there is multiple question send the json questions in an array with the prefix "questions". Don't send anything else but the json object. Try to create as many questions as you can that can fit in 4096 tokens, a question for each note.`,
+        },
+        {
+          role: "user",
+          content: `Here are the notes: ${notesText}`,
+        },
+      ],
+    });
+
+    const answer = response.choices[0].message.content;
+    res.json(answer);
     console.log(answer);
   } catch (err) {
     console.error("AI route error:", err);

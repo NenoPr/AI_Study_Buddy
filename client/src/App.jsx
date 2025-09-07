@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { GroupSummaryProvider } from "./context/GroupsSummaryContext.jsx";
+import { QuizProvider } from "./context/QuizContext.jsx";
 import AIHome from "./pages/AIHome.jsx";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
@@ -45,7 +46,9 @@ function AppWrapper() {
           element={
             <ProtectedRoute>
               <GroupSummaryProvider>
-                <Notes />
+                <QuizProvider>
+                  <Notes />
+                </QuizProvider>
               </GroupSummaryProvider>
             </ProtectedRoute>
           }
