@@ -17,7 +17,7 @@ The app is straightforward and simple to use, create notes, manage them and util
 I desired to create an app with AI integration and the idea of an AI helping you with studying resonated the most.
 The project uses the following stack: React for front-end, Node.js and express for the back-end, and postgresql for database managment.
 
-<div style="display: flex" style="justify-items: center">
+<div style="display: flex" style="justify-content: center">
 	<img src="./images/react-svgrepo-com.png" width="64px">
 	<img src="./images/node-js-svgrepo-com.png" width="64px">
 	<img src="./images/express-svgrepo-com.png" width="64px">
