@@ -15,7 +15,8 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start": "node server.mjs"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

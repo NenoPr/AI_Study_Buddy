@@ -31,6 +31,9 @@ app.use("/api/ai", aiRoutes);
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 pool.connect()
