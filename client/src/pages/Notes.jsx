@@ -48,7 +48,7 @@ export default function NotesPage() {
   const fetchNotes = async () => {
     const controller = new AbortController();
     try {
-      const res = await fetch(`${API_BASE}/api/notes`, {
+      const res = await fetch(`/${API_BASE}/api/notes`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +76,7 @@ export default function NotesPage() {
 
   const fetchGroups = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/notes/groups`, {
+      const res = await fetch(`/${API_BASE}/api/notes/groups`, {
         method: "GET",
         credentials: "include",
       });
@@ -114,7 +114,7 @@ export default function NotesPage() {
 
     try {
       const requests = groupIds.map((id) =>
-        fetch(`${API_BASE}/api/notes/groupNotes/${id}`, {
+        fetch(`/${API_BASE}/api/notes/groupNotes/${id}`, {
           method: "GET",
           credentials: "include",
           signal: controller.signal,
@@ -158,7 +158,7 @@ export default function NotesPage() {
     console.log("groupIds: ", groupIds);
 
     try {
-      const request = await fetch(`${API_BASE}/api/ai/summarize/groupNotes`, {
+      const request = await fetch(`/${API_BASE}/api/ai/summarize/groupNotes`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ group_ids: groupIds }),
@@ -187,7 +187,7 @@ export default function NotesPage() {
     // setIsEditingId(id);
     const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
     try {
-      const res = await fetch(`${API_BASE}/api/ai/createQuiz/group`, {
+      const res = await fetch(`/${API_BASE}/api/ai/createQuiz/group`, {
         method: "POST",
         headers: {"Content-type": "application/json"},
         body: JSON.stringify({ groups: groupIds }),

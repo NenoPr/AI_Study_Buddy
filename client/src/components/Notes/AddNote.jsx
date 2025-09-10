@@ -31,7 +31,7 @@ export default function AddNote({
 
     try {
       // await is only here, inside the async function
-      const res = await fetch(`${API_BASE}/api/notes`, {
+      const res = await fetch(`/${API_BASE}/api/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

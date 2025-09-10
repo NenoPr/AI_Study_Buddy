@@ -14,7 +14,7 @@ export default function Login() {
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await fetch(`/${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ email, password }),
