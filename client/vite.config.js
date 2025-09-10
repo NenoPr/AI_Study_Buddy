@@ -1,25 +1,32 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      "/api/notes": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      },
-      "/api/auth": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      },
-      "/api/ai": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
+
+export default defineConfig(({ mode }) => {
+  // Load env variables based on current mode (development / production)
+  const env = loadEnv(mode, process.cwd(), "");
+  const API_BASE = env.VITE_API_URL;
+
+  return {
+    plugins: [react()],
+    server: {
+      proxy: {
+        "/api/notes": {
+          target: API_BASE,
+          changeOrigin: true,
+          secure: false,
+        },
+        "/api/auth": {
+          target: API_BASE,
+          changeOrigin: true,
+          secure: false,
+        },
+        "/api/ai": {
+          target: API_BASE,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
-  },
+  };
 });

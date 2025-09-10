@@ -18,7 +18,7 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 app.use(cookieParser());
-app.use(cors({ origin: "https://ai-study-buddy-23z2.onrender.com", credentials: true }));
+app.use(cors({ origin: "https://ai-study-buddy-owtw6pf2i-nenoprs-projects.vercel.app", credentials: true }));
 app.use(express.json());
 app.use((req, res, next) => {
     req.pool = pool;
