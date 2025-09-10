@@ -19,29 +19,26 @@ if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET must be set in environment variables");
 }
 
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // server-to-server
+    if (origin.endsWith("-nenoprs-projects.vercel.app")) {
+      callback(null, origin); // ✅ echo the request origin
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
 const app = express();
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // preflight requests
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "https://ai-study-buddy-owtw6pf2i-nenoprs-projects.vercel.app",
-    credentials: true,
-  })
-);
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // server-side requests
-      if (origin.endsWith("-nenoprs-projects.vercel.app")) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
 app.use(express.json());
 app.use((req, res, next) => {
   req.pool = pool;
