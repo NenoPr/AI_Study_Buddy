@@ -19,6 +19,17 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 app.use(cookieParser());
 app.use(cors({ origin: "https://ai-study-buddy-owtw6pf2i-nenoprs-projects.vercel.app", credentials: true }));
+app.use(cors({
+    origin: function(origin, callback) {
+      if(!origin) return callback(null, true); // server-side requests
+      if(origin.endsWith("-nenoprs-projects.vercel.app")) {
+        callback(null, true)
+      } else {
+        callback(new Error("Not allowed by CORS"))
+      }
+    },
+    credentials: true
+  }));
 app.use(express.json());
 app.use((req, res, next) => {
     req.pool = pool;
