@@ -1,57 +1,70 @@
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 dotenv.config();
-import express from "express"
+import express from "express";
 import cookieParser from "cookie-parser";
-import cors from "cors"
-import pkg from "pg"
-import authRouter from "./routes/auth.mjs"
-import notesRouter from "./routes/notes.mjs"
-import aiRoutes from "./routes/ai.mjs"
+import cors from "cors";
+import pkg from "pg";
+import authRouter from "./routes/auth.mjs";
+import notesRouter from "./routes/notes.mjs";
+import aiRoutes from "./routes/ai.mjs";
 
-console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "✅ Loaded" : "❌ Missing");
+console.log(
+  "OPENAI_API_KEY:",
+  process.env.OPENAI_API_KEY ? "✅ Loaded" : "❌ Missing"
+);
 
 const { Pool } = pkg;
 
 if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET must be set in environment variables");
-  }
+  throw new Error("JWT_SECRET must be set in environment variables");
+}
 
 const app = express();
 app.use(cookieParser());
-app.use(cors({ origin: "https://ai-study-buddy-owtw6pf2i-nenoprs-projects.vercel.app", credentials: true }));
-app.use(cors({
-    origin: function(origin, callback) {
-      if(!origin) return callback(null, true); // server-side requests
-      if(origin.endsWith("-nenoprs-projects.vercel.app")) {
-        callback(null, true)
+app.use(
+  cors({
+    origin: "https://ai-study-buddy-owtw6pf2i-nenoprs-projects.vercel.app",
+    credentials: true,
+  })
+);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // server-side requests
+      if (origin.endsWith("-nenoprs-projects.vercel.app")) {
+        callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"))
+        callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true
-  }));
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 app.use((req, res, next) => {
-    req.pool = pool;
-    next();
+  req.pool = pool;
+  next();
 });
 app.use("/api/auth", authRouter);
 app.use("/api/notes", notesRouter);
 app.use("/api/ai", aiRoutes);
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false,
-    },
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
-pool.connect()
-    .then(() => console.log("✅ Connected to PostgreSQL"))
-    .catch((err) => console.error("❌ DB connection error:", err));
+pool
+  .connect()
+  .then(() => console.log("✅ Connected to PostgreSQL"))
+  .catch((err) => console.error("❌ DB connection error:", err));
 
 app.get("/", (req, res) => {
-    res.send("Hello from AI Study Buddy backend!")
+  res.send("Hello from AI Study Buddy backend!");
 });
 
 const PORT = process.env.PORT || 5000;
