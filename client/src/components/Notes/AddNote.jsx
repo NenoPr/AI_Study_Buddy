@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
+const API_BASE = import.meta.env.VITE_API_URL;
+
 
 export default function AddNote({
   refreshNotes,
@@ -29,7 +31,7 @@ export default function AddNote({
 
     try {
       // await is only here, inside the async function
-      const res = await fetch("/api/notes", {
+      const res = await fetch(`${API_BASE}/api/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

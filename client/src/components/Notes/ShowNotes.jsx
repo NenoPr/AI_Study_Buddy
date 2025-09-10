@@ -8,6 +8,8 @@ import Select from "react-select";
 import AddNote from "./AddNote";
 import SummarizeGroupResponse from "./SummarizeGroupResponse";
 import Quiz from "./Quiz";
+const API_BASE = import.meta.env.VITE_API_URL;
+
 
 export default function ShowNotes({
   notes,
@@ -56,7 +58,7 @@ export default function ShowNotes({
 
   const deleteNote = async (id) => {
     try {
-      const res = await fetch(`/api/notes/${id}`, {
+      const res = await fetch(`${API_BASE}/api/notes/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -79,7 +81,7 @@ export default function ShowNotes({
     setLoading(true);
     setIsEditingId(id);
     try {
-      const res = await fetch(`/api/ai/summarize/${id}`, {
+      const res = await fetch(`${API_BASE}/api/ai/summarize/${id}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -101,7 +103,7 @@ export default function ShowNotes({
     setLoading(true);
     setIsEditingId(id);
     try {
-      const res = await fetch(`/api/ai/createQuiz/${id}`, {
+      const res = await fetch(`${API_BASE}/api/ai/createQuiz/${id}`, {
         method: "GET",
         credentials: "include",
       });
@@ -131,7 +133,7 @@ export default function ShowNotes({
     const data = { title, content };
     // console.log(itemId, title, content);
     try {
-      const res = await fetch(`/api/notes/${itemId}`, {
+      const res = await fetch(`${API_BASE}/api/notes/${itemId}`, {
         method: "PUT",
         headers: {
           "Content-type": "application/json",
@@ -160,7 +162,7 @@ export default function ShowNotes({
     // Get groups that the note belongs in
     try {
       const res = await fetch(
-        `/api/notes/groupNotes/note/group/${isEditingId}`,
+        `${API_BASE}/api/notes/groupNotes/note/group/${isEditingId}`,
         {
           method: "GET",
           credentials: "include",
@@ -195,7 +197,7 @@ export default function ShowNotes({
 
     try {
       // Add all groups it belongs to
-      const results = await fetch(`/api/notes/groupNotes/update`, {
+      const results = await fetch(`${API_BASE}/api/notes/groupNotes/update`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ note_id: isEditingId, group_ids: groupsToAdd }),
@@ -225,7 +227,7 @@ export default function ShowNotes({
     setCreatingNote(true);
 
     try {
-      const res = await fetch("/api/ai/createNote", {
+      const res = await fetch(`${API_BASE}/api/ai/createNote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -248,7 +250,7 @@ export default function ShowNotes({
     setCreatingNote(true);
     const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
     try {
-      const res = await fetch("/api/notes", {
+      const res = await fetch(`${API_BASE}/api/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
+const API_BASE = import.meta.env.VITE_API_URL;
+
 
 const AuthContext = createContext();
 
@@ -11,7 +13,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const res = await fetch(`${API_BASE}/api/auth/me`, { credentials: "include" });
       if (!res.ok) throw new Error("Not authenticated");
       const data = await res.json();
       setUser(data.user);
@@ -40,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   // frontend logout function in AuthContext
   const logout = async () => {
-    const res = await fetch("/api/auth/logout", {
+    const res = await fetch(`${API_BASE}/api/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

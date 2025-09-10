@@ -5,7 +5,9 @@ import react from "@vitejs/plugin-react";
 export default defineConfig(({ mode }) => {
   // Load env variables based on current mode (development / production)
   const env = loadEnv(mode, process.cwd(), "");
+  console.log(env)
   const API_BASE = env.VITE_API_URL;
+  console.log(API_BASE)
 
   return {
     plugins: [react()],
