@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Select from "react-select";
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_URL.REPLACE(/\/$/, "");
 
 
 export default function AddNote({ fetchGroups, setActiveComponent, activeComponent }) {

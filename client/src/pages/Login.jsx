@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_URL.REPLACE(/\/$/, "");
 
 export default function Login() {
   const [email, setEmail] = useState("");
