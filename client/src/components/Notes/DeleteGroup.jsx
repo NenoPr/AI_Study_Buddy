@@ -20,7 +20,7 @@ export default function AddNote({ selectGroups, fetchGroups, setActiveComponent,
 
     try {
       // await is only here, inside the async function
-      const res = await fetch(`/${API_BASE}/api/notes/groups`, {
+      const res = await fetch(`${API_BASE}/api/notes/groups`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

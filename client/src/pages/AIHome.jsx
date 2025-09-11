@@ -28,7 +28,7 @@ export default function AIHome() {
 
     try {
       // await is only here, inside the async function
-      const res = await fetch(`/${API_BASE}/api/ai/summarize`, {
+      const res = await fetch(`${API_BASE}/api/ai/summarize`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export default function AIHome() {
 
     try {
       // await is only here, inside the async function
-      const res = await fetch(`/${API_BASE}/api/ai/ask`, {
+      const res = await fetch(`${API_BASE}/api/ai/ask`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export default function AIHome() {
 
   const fetchGroups = async () => {
     try {
-      const res = await fetch(`/${API_BASE}/api/notes/groups`, {
+      const res = await fetch(`${API_BASE}/api/notes/groups`, {
         method: "GET",
         credentials: "include",
       });
@@ -101,7 +101,7 @@ export default function AIHome() {
   const createNoteTitle = async () => {
     setCreatingNote(true);
     try {
-      const res = await fetch(`/${API_BASE}/api/ai/createNote`, {
+      const res = await fetch(`${API_BASE}/api/ai/createNote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +123,7 @@ export default function AIHome() {
   const addNote = async (AiTitle, content, groups) => {
     setCreatingNote(true);
     try {
-      const res = await fetch(`/${API_BASE}/api/notes`, {
+      const res = await fetch(`${API_BASE}/api/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
