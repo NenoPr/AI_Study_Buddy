@@ -19,11 +19,12 @@ if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET must be set in environment variables");
 }
 
-
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true); // server-to-server
     if (origin.endsWith("-nenoprs-projects.vercel.app")) {
+      callback(null, origin); // ✅ echo the request origin
+    } else if (origin.endsWith("ai-study-buddy-silk.vercel.app")) {
       callback(null, origin); // ✅ echo the request origin
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -31,12 +32,14 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 const app = express();
 
-app.use(cors(corsOptions));
+//ai-study-buddy-silk.vercel.app'
+
+https: app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions)); // preflight requests
 app.use(cookieParser());
 app.use(express.json());
