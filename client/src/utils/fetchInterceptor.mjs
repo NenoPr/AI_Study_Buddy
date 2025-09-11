@@ -4,11 +4,12 @@ import { navigate } from "./navigate";
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
 
 function normalizeUrl(input) {
-  // If full absolute URL (http/https), return as is
-  if (/^https?:\/\//i.test(input)) return input;
+  if (/^https?:\/\//i.test(input)) return input; // absolute URL → leave as is
 
-  // Otherwise, prepend API_BASE
-  return `${API_BASE}${input.startsWith("/") ? input : "/" + input}`;
+  // Ensure exactly one slash between base and path
+  const base = API_BASE.replace(/\/+$/, "");
+  const path = input.replace(/^\/+/, "");
+  return `${base}/${path}`;
 }
 
 const originalFetch = window.fetch;
