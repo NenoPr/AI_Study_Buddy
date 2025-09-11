@@ -8,7 +8,7 @@ import Select from "react-select";
 import AddNote from "./AddNote";
 import SummarizeGroupResponse from "./SummarizeGroupResponse";
 import Quiz from "./Quiz";
-const API_BASE = import.meta.env.VITE_API_URL.REPLACE(/\/$/, "");
+const API_BASE = import.meta.env.VITE_API_URL;
 
 
 export default function ShowNotes({

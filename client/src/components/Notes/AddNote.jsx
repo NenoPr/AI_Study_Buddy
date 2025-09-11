@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
-const API_BASE = import.meta.env.VITE_API_URL.REPLACE(/\/$/, "");
+const API_BASE = import.meta.env.VITE_API_URL;
 
 
 export default function AddNote({

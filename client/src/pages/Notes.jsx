@@ -8,7 +8,7 @@ import DeleteGroup from "../components/Notes/DeleteGroup";
 import ShowNotes from "../components/Notes/ShowNotes";
 import "../css/notes.css";
 import { useQuizContext } from "../context/QuizContext";
-const API_BASE = import.meta.env.VITE_API_URL.REPLACE(/\/$/, "");
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function NotesPage() {
   const { token } = useAuth();

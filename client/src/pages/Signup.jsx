@@ -1,5 +1,5 @@
 import { useState } from "react";
-const API_BASE = import.meta.env.VITE_API_URL.REPLACE(/\/$/, "");
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function Signup() {
     const [email, setEmail] = useState("");
