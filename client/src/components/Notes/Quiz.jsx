@@ -165,7 +165,7 @@ export default function Quiz({ quizJSON, setQuizActive }) {
                     return (
                       <>
                         <label
-                          htmlFor={value}
+                          htmlFor={`${value}-${index}`}
                           key={key}
                           style={{ display: "flex" }}
                         >
@@ -173,7 +173,7 @@ export default function Quiz({ quizJSON, setQuizActive }) {
                           <input
                             type="radio"
                             value={key}
-                            id={value}
+                            id={`${value}-${index}`}
                             name={`option-${index}`}
                           />{" "}
                           {value}
