@@ -70,6 +70,9 @@ router.post("/login", async (req, res) => {
     // HttpOnly + Secure cookie
     res.cookie("token", token, {
       httpOnly: true,
+      // secure: true, // must be true in production with https
+      // sameSite: "none", // allow cross-site cookies
+      // domain: "ai-study-buddy-23z2.onrender.com", // force cookie on backend domain
       secure: false, // set true if using HTTPS
       sameSite: "lax",
       path: "/",
@@ -94,8 +97,8 @@ router.get("/me", authenticateToken, (req, res) => {
 
 // backend logout route
 router.post("/logout", (req, res) => {
-    res.clearCookie("token", { path: "/" });
-    res.json({ message: "Logged out" });
-  });
+  res.clearCookie("token", { path: "/" });
+  res.json({ message: "Logged out" });
+});
 
 export default router;

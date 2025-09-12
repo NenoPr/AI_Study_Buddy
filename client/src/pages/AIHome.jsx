@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function AIHome() {
   const [summary, setSummary] = useState("");
@@ -27,7 +28,7 @@ export default function AIHome() {
 
     try {
       // await is only here, inside the async function
-      const res = await fetch("/api/ai/summarize", {
+      const res = await fetch(`${API_BASE}/api/ai/summarize`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +53,7 @@ export default function AIHome() {
 
     try {
       // await is only here, inside the async function
-      const res = await fetch("/api/ai/ask", {
+      const res = await fetch(`${API_BASE}/api/ai/ask`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +75,7 @@ export default function AIHome() {
 
   const fetchGroups = async () => {
     try {
-      const res = await fetch("/api/notes/groups", {
+      const res = await fetch(`${API_BASE}/api/notes/groups`, {
         method: "GET",
         credentials: "include",
       });
@@ -100,7 +101,7 @@ export default function AIHome() {
   const createNoteTitle = async () => {
     setCreatingNote(true);
     try {
-      const res = await fetch("/api/ai/createNote", {
+      const res = await fetch(`${API_BASE}/api/ai/createNote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,7 +123,7 @@ export default function AIHome() {
   const addNote = async (AiTitle, content, groups) => {
     setCreatingNote(true);
     try {
-      const res = await fetch("/api/notes", {
+      const res = await fetch(`${API_BASE}/api/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

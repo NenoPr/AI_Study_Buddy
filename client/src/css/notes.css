@@ -103,7 +103,7 @@
 .note-add {
     align-self: center;
     align-content: center;
-    background: url(add.svg) no-repeat center;
+    background: url(/add.svg) no-repeat center;
     background-size: contain;
     width: 10rem;
     height: 10rem;
@@ -173,7 +173,7 @@ p {
 .button-groups {
     height: 2rem;
     width: 2rem;
-    background: url(group.svg) no-repeat top right;
+    background: url(/group.svg) no-repeat top right;
     background-size: contain;
     border: 2px solid rgb(201, 133, 87);
     border-radius: .5rem;
@@ -188,7 +188,7 @@ p {
     flex-grow: 0;
     height: 2rem;
     width: 2rem;
-    background: url(edit.svg) no-repeat top right;
+    background: url(/edit.svg) no-repeat top right;
     background-size: contain;
     border: 2px solid rgb(255, 170, 0);
     border-radius: .5rem;
@@ -198,7 +198,7 @@ p {
     flex-grow: 0;
     height: 2rem;
     width: 2rem;
-    background: url(save.svg) no-repeat top right;
+    background: url(/save.svg) no-repeat top right;
     background-size: contain;
     border: 2px solid rgb(255, 170, 0);
     border-radius: .5rem;
@@ -220,7 +220,7 @@ p {
     flex-grow: 0;
     height: 2rem;
     width: 2rem;
-    background: url(trash-bin.svg) no-repeat top right;
+    background: url(/trash-bin.svg) no-repeat top right;
     background-size: contain;
     border: 2px solid red;
     border-radius: .5rem;
@@ -230,7 +230,7 @@ p {
     flex-grow: 0;
     height: 2rem;
     width: 2rem;
-    background: url(back.svg) no-repeat top right;
+    background: url(/back.svg) no-repeat top right;
     background-size: contain;
     border: 2px solid blue;
     border-radius: .5rem;

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Select from "react-select";
+const API_BASE = import.meta.env.VITE_API_URL;
+
 
 export default function AddNote({ selectGroups, fetchGroups, setActiveComponent, activeComponent }) {
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ export default function AddNote({ selectGroups, fetchGroups, setActiveComponent,
 
     try {
       // await is only here, inside the async function
-      const res = await fetch("/api/notes/groups", {
+      const res = await fetch(`${API_BASE}/api/notes/groups`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
