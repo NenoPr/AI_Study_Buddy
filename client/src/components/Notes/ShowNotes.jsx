@@ -10,7 +10,6 @@ import SummarizeGroupResponse from "./SummarizeGroupResponse";
 import Quiz from "./Quiz";
 const API_BASE = import.meta.env.VITE_API_URL;
 
-
 export default function ShowNotes({
   notes,
   refreshNotes,
@@ -39,8 +38,7 @@ export default function ShowNotes({
   const [tabs, setTabs] = useState([]);
   const { token } = useAuth();
   const textareaRef = useRef(null);
-  const { quizActive, setQuizActive, quizJSON, setQuizJSON } =
-    useQuizContext();
+  const { quizActive, setQuizActive, quizJSON, setQuizJSON } = useQuizContext();
 
   useEffect(() => {
     console.log("activeGroups: ", activeGroups[0]);
@@ -273,8 +271,6 @@ export default function ShowNotes({
     }
   };
 
-
-
   return (
     <div className="notes">
       {addNoteBool ? (
@@ -309,11 +305,11 @@ export default function ShowNotes({
               <>
                 <div className="note-open-buttons">
                   <div
-                    className="button-edit-save"
+                    className="button-edit-save button-note"
                     onClick={() => saveNote(title, content, isEditingId)}
                   ></div>
                   <div
-                    className="button-edit-cancel"
+                    className="button-edit-cancel button-note"
                     onClick={() => {
                       setIsEditingNote(false);
                     }}
@@ -353,21 +349,21 @@ export default function ShowNotes({
                   ) : (
                     <>
                       <div
-                        className="button-groups"
+                        className="button-groups button-note"
                         onClick={getNotesGroups}
                       ></div>
                       <div
-                        className="button-edit"
+                        className="button-edit button-note"
                         onClick={() => setIsEditingNote(true)}
                       ></div>
                       <div
-                        className="button-delete"
+                        className="button-delete button-note"
                         onClick={() => {
                           setDeletingNoteId(isEditingId);
                         }}
                       ></div>
                       <div
-                        className="button-edit-cancel"
+                        className="button-edit-cancel button-note"
                         onClick={() => {
                           setIsEditingId("");
                           setTitle("");
@@ -415,9 +411,11 @@ export default function ShowNotes({
                     </form>
                   </>
                 )}
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {title}
-                </ReactMarkdown>
+                <div className="note-open-title">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {title}
+                  </ReactMarkdown>
+                </div>
                 <div style={{ border: "1px solid gray" }}></div>
                 <div className="note-open-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -430,89 +428,98 @@ export default function ShowNotes({
         )
       )}
       {/* Renders all selected notes  */}
-      {notes && !noteOpen && !summarizeGroupsResponse && !addNoteBool && !quizActive && (
-        <div className="note-container">
-          <div className="note-card">
-            <div
-              className="note-contents"
-              onClick={() => {
-                setAddNoteBool(true);
-              }}
-            >
-              <div className="note-content note-add"></div>
-            </div>
-            <div
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-              className="note-add-words"
-            >
-              Add note
-            </div>
-          </div>
-          {notes.map((item, index) => (
-            <div key={index} className="note-card">
+      {notes &&
+        !noteOpen &&
+        !summarizeGroupsResponse &&
+        !addNoteBool &&
+        !quizActive && (
+          <div className="note-container">
+            <div className="note-card">
               <div
                 className="note-contents"
                 onClick={() => {
-                  editNote(item.title, item.content, item.id);
-                  setNoteOpen(true);
+                  setAddNoteBool(true);
                 }}
               >
-                <div>
-                  <div className="note-title">
-                    {item.title.replace(/#/g, "")}
-                  </div>
-                  <div className="line"></div>
-                </div>
-                <div className="note-content">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {item.content}
-                  </ReactMarkdown>
-                </div>
+                <div className="note-content note-add"></div>
               </div>
-              <div className="note-buttons-container">
-                {deletingNoteId == item.id ? (
-                  <>
-                    <span style={{ alignSelf: "center" }}>Are you sure?</span>
-                    <button onClick={() => deleteNote(item.id)}>Yes</button>
-                    <button onClick={() => setDeletingNoteId(null)}>No</button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="button-summarize-note"
-                      onClick={() => {
-                        summarizeNote(item.id);
-                      }}
-                      disabled={loading}
-                    >
-                      {loading && isEditingId == item.id
-                        ? "Summarizing note..."
-                        : "Summarize"}
-                    </button>
-                    <button
-                      className="button-quiz-note"
-                      onClick={() => createQuiz(item.id)}
-                      disabled={loading}
-                    >
-                      {loading && isEditingId == item.id
-                        ? "Quizing note..."
-                        : "Quiz"}
-                    </button>
-                    <div
-                      className="button-delete"
-                      onClick={() => setDeletingNoteId(item.id)}
-                    ></div>
-                  </>
-                )}
+              <div
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+                className="note-add-words"
+              >
+                Add note
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            {notes.map((item, index) => (
+              <div key={index} className="note-card">
+                <div
+                  className="note-contents"
+                  onClick={() => {
+                    editNote(item.title, item.content, item.id);
+                    setNoteOpen(true);
+                  }}
+                >
+                  <div>
+                    <div className="note-title">
+                      {item.title.replace(/#/g, "")}
+                    </div>
+                    <div className="line"></div>
+                  </div>
+                  <div className="note-content">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {item.content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+                <div className="note-buttons-container">
+                  {deletingNoteId == item.id ? (
+                    <>
+                      <span style={{ alignSelf: "center" }}>Are you sure?</span>
+                      <button onClick={() => deleteNote(item.id)}>Yes</button>
+                      <button onClick={() => setDeletingNoteId(null)}>
+                        No
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="button-summarize-note"
+                        onClick={() => {
+                          summarizeNote(item.id);
+                        }}
+                        disabled={loading}
+                      >
+                        {loading && isEditingId == item.id
+                          ? "Summarizing note..."
+                          : "Summarize"}
+                      </button>
+                      <button
+                        className="button-quiz-note"
+                        onClick={() => createQuiz(item.id)}
+                        disabled={loading}
+                      >
+                        {loading && isEditingId == item.id
+                          ? "Quizing note..."
+                          : "Quiz"}
+                      </button>
+                      {loading ? null : (
+                        <div
+                          className="button-delete"
+                          disabled={loading}
+                          onClick={() => setDeletingNoteId(item.id)}
+                        ></div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
     </div>
   );
 }

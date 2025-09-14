@@ -2,10 +2,14 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useGroupSummary } from "../../context/GroupsSummaryContext";
 import Select from "react-select";
+import { useEffect } from "react";
 
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export default function SummarizeGroupResponse(
-  {creatingNote,
+export default function SummarizeGroupResponse({
+  creatingNote,
   isCreatingNote,
   setIsCreatingNote,
   title,
@@ -15,43 +19,50 @@ export default function SummarizeGroupResponse(
   getNotes,
   selectIsDisabled,
   selectIsLoading,
-  createNoteTitle}
-) {
-  const { summarizeGroupsResponse, setSummarizeGroupsResponse, groupsSelected, setGroupsSelected, groups, setGroups } = useGroupSummary();
+  createNoteTitle,
+}) {
+  const {
+    summarizeGroupsResponse,
+    setSummarizeGroupsResponse,
+    groupsSelected,
+    setGroupsSelected,
+    groups,
+    setGroups,
+  } = useGroupSummary();
+
+  useEffect(() => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  }, [addNote]);
 
   return (
     <div className="summary">
-      <div style={{ fontWeight: "bold", fontSize: "1.5rem" }}>Response:</div>
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {summarizeGroupsResponse}
-      </ReactMarkdown>
+      <div class="w-full p-3 border-b-2 border-gray-500">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {summarizeGroupsResponse}
+        </ReactMarkdown>
+      </div>
       {isCreatingNote ? null : (
-        <button
-          style={{ width: "fit-content" }}
-          onClick={() => setIsCreatingNote(true)}
-        >
+        <button class="w-fit ml-3" onClick={() => setIsCreatingNote(true)}>
           Create a new note
         </button>
       )}
-      <br />
       {isCreatingNote ? (
-        <>
+        <div class="ml-3 flex flex-col gap-2">
           <button
             onClick={createNoteTitle}
             disabled={creatingNote}
-            style={{ width: "fit-content", marginBottom: "1rem" }}
+            class="w-fit mb-3"
           >
             Let AI handle it...
           </button>
           <label htmlFor="title">Title:</label>
-          <input
+          <Input
             name="title"
             type="text"
             placeholder="Title..."
             style={{ width: "20rem" }}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <br />
           <label>
             Groups:
             <Select
@@ -70,32 +81,28 @@ export default function SummarizeGroupResponse(
                 control: (baseStyles, state) => ({
                   ...baseStyles,
                   borderColor: state.isFocused ? "grey" : "red",
-                  width: "50%",
+                  width: "20rem"
                 }),
               }}
             />
           </label>
-          <br />
           <div style={{ display: "flex", gap: "1rem" }}>
             <button
-              style={{ width: "fit-content" }}
-              onClick={() => addNote(title, summarizeGroupsResponse)}
+              class="w-fit ml-3"
+              onClick={() => {
+                addNote(title, summarizeGroupsResponse);
+              }}
             >
               Create new note
             </button>
-            <br />
-            <button
-              onClick={() => setIsCreatingNote(false)}
-              style={{ width: "fit-content" }}
-            >
+            <button onClick={() => setIsCreatingNote(false)} class="w-fit ml-3">
               Cancel
             </button>
           </div>
-        </>
+        </div>
       ) : null}
-      <br />
       <button
-        style={{ width: "fit-content" }}
+        class="w-fit ml-3"
         onClick={() => {
           setSummarizeGroupsResponse(null), getNotes();
         }}

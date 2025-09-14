@@ -64,7 +64,7 @@ export default function AddNote({ fetchGroups, setActiveComponent, activeCompone
         </form>
             </>
       ) : (
-        <button onClick={() => {setGroupAdd(true); setActiveComponent("addGroup")}}>Create new Group</button>
+        <button onClick={() => {setGroupAdd(true); setActiveComponent("addGroup")}}>Create Group</button>
       )}
     </div>
   );

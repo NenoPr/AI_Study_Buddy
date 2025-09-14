@@ -211,12 +211,7 @@ export default function NotesPage() {
   return (
     <div>
       <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          margin: "1rem",
-        }}
+        class="flex flex-row justify-center m-5 gap-3"
       >
         {/* <AddNote
           onNoteAdded={addNoteToState}
@@ -247,15 +242,10 @@ export default function NotesPage() {
         }}
       ></div>
       <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-start",
-          gap: "3rem",
-          alignItems: "center",
-        }}
+        class="flex flex-col sm:flex-row sm:items-center gap-4"
       >
-        <div style={{ fontWeight: "bold" }}>Groups: </div>
+        <div class="font-bold">Groups: </div>
+        <div class="w-full sm:w-100">
         <Select
           options={groups}
           isMulti
@@ -267,10 +257,11 @@ export default function NotesPage() {
               ...baseStyles,
               borderColor: state.isFocused ? "grey" : "red",
               flexGrow: "1",
-              width: "20vw",
+              width: "100%"
             }),
           }}
-        />
+          />
+          </div>
         <button onClick={getNotes} disabled={loading}>
           {loadingNotes ? "Fetching notes..." : "Fetch notes"}
         </button>
@@ -284,9 +275,9 @@ export default function NotesPage() {
             ? "Creating quiz..."
             : "Create a quiz from selected groups"}
         </button>
-        <div style={{ display: "flex", justifyContent: "right", flex: "1" }}>
-          <button>Sort By:</button>
-        </div>
+        {/* <div  class="sm:flex sm:justify-end sm:flex-1">
+          <button class="w-full sm:w-fit">Sort By:</button>
+        </div> */}
       </div>
       <div
         style={{
