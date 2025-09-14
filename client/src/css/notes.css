@@ -332,6 +332,11 @@ p {
   border-color: rgb(0, 0, 0);
 }
 
+.button-note {
+  width: 3rem;
+  height: 3rem;
+}
+
 @media only screen and (max-width: 600px) {
   .button-note {
     width: 3.5rem;

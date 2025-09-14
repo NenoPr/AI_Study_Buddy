@@ -41,8 +41,9 @@ const app = express();
 
 //ai-study-buddy-silk.vercel.app'
 
-https: app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions)); // preflight requests
+// https: app.use(cors(corsOptions));
+// app.options(/.*/, cors(corsOptions)); // preflight requests
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {
