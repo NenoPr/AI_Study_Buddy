@@ -3,11 +3,6 @@ import { useAuth } from "../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
-
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function AIHome() {
@@ -100,8 +95,6 @@ export default function AIHome() {
     } catch (err) {
       console.error(err);
       setGroups([]);
-    } finally {
-      window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})
     }
   };
 
@@ -153,21 +146,10 @@ export default function AIHome() {
     }
   };
 
-  function handleKeyDown(e) {
-    if (e.key === "Enter") {
-      if (!e.shiftKey) {
-        // Enter without Shift → submit
-        e.preventDefault();
-        handleQuestion();
-      }
-      // Shift+Enter → let it create a new line
-    }
-  }
-
   return (
-    <div class="flex flex-col items-center">
-      {/* <br />
-       <button onClick={handleSummarize} disabled={loadingSummarize}>
+    <div>
+      <br />
+      {/* <button onClick={handleSummarize} disabled={loadingSummarize}>
         {loadingSummarize ? "Summarizing..." : "Summarize all Notes"}
       </button>
       <div style={{ margin: "1rem" }}></div>
@@ -178,41 +160,28 @@ export default function AIHome() {
             {summary}
           </div>
         </>
-      )} 
-      <br /> */}
-
-      <form
-        onSubmit={handleQuestion}
-        class="flex flex-col gap-2 h-fit items-center mt-5 w-full"
-      >
-        <Textarea
+      )} */}
+      <br />
+      <form onSubmit={handleQuestion}>
+        <textarea
           type="text"
-          onChange={(e) => {
-            setQuestion(e.target.value);
-          }}
-          onKeyDown={handleKeyDown}
+          onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask me anything..."
-          class="w-full max-w-250 h-50 pl-5 pr-5 pt-3 border-4 rounded-2xl resize-none"
-          name="question"
-          id="question"
+          style={{ width: "30rem", height: "5rem" }}
         />
-        <span class="opacity-50">
-          Hint: Press ENTER to submit a question, SHIFT+ENTER to create a new
-          line
-        </span>
         <br />
-        <button
-          onClick={handleQuestion}
-          disabled={loadingQuestion}
-          class="w-fit"
-        >
+        <button onClick={handleQuestion} disabled={loadingQuestion}>
           {loadingQuestion ? "Answering question..." : "Ask Question"}
         </button>
       </form>
       <div className="notes">
         {answer && (
-          <div class="summary">
-            <div class="">
+          <div className="summary">
+            <h2 style={{ alignText: "center" }}>Answer:</h2>
+            <div
+              className="test"
+              style={{ textAlign: "left", marginTop: "1rem" }}
+            >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {answer}
               </ReactMarkdown>
@@ -241,7 +210,7 @@ export default function AIHome() {
                 <div style={{ width: "fit-content" }}>
                   <label htmlFor="title">Title:</label>
                   <br />
-                  <Input
+                  <input
                     name="title"
                     type="text"
                     placeholder="Title..."
@@ -252,7 +221,6 @@ export default function AIHome() {
                   <label>
                     Groups:
                     <Select
-                      menuPlacement="top" 
                       options={groups}
                       isMulti
                       isDisabled={selectIsDisabled}
@@ -274,7 +242,7 @@ export default function AIHome() {
                   </label>
                 </div>
                 <br />
-                <div style={{ display: "flex", gap: "1rem" }}>
+                <div style={{display: "flex", gap: "1rem"}}>
                   <button
                     style={{ width: "fit-content" }}
                     onClick={() => addNote(title, answer, groupsToAdd)}

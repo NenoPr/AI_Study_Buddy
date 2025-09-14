@@ -73,7 +73,7 @@ export default function AddNote({ selectGroups, fetchGroups, setActiveComponent,
         </form>
             </>
       ) : (
-        <button onClick={() => {setGroupDelete(true); setActiveComponent("groupDelete")}}>Delete Group</button>
+        <button onClick={() => {setGroupDelete(true); setActiveComponent("groupDelete")}}>Delete Groups</button>
       )}
     </div>
   );

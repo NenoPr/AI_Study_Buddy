@@ -2,11 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
-
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-
-
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function Login() {
@@ -42,26 +37,23 @@ export default function Login() {
   }
 
   return (
-    <div class="flex w-100vw justify-center">
-      <form
-        onSubmit={handleLogin}
-        class="flex flex-col gap-5 w-fit self-center mt-2"
-      >
-        <h2 class="font-extrabold">Login</h2>
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button type="submit" variant="outline">Login</Button>
-      </form>
-    </div>
+    <form onSubmit={handleLogin}>
+      <h2>Login</h2>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <br />
+      <input
+        type="password"
+        placeholder="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <br />
+      <button type="submit">Login</button>
+    </form>
   );
 }

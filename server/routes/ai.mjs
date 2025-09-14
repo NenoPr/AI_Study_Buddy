@@ -18,14 +18,14 @@ router.post("/ask", async (req, res) => {
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       temperature: 0.3, // low creativity to reduce hallucinations
-      max_tokens: 4096,
+      max_tokens: 500,
       messages: [
         {
           role: "system",
           content:
             "You are a helpful study assistant. Answer the students questions. Use the .md format to format them, make them look easy to understand and pleasing to see.",
         },
-        { role: "user", content: `${req.body.question}` },
+        { role: "user", content: `Question: ${req.body.question}` },
       ],
     });
 
