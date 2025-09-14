@@ -26,6 +26,8 @@ const corsOptions = {
       callback(null, origin); // ✅ echo the request origin
     } else if (origin.endsWith("ai-study-buddy-silk.vercel.app")) {
       callback(null, origin); // ✅ echo the request origin
+    } else if (origin.endsWith("localhost:5173")) {
+      callback(null, origin); // ✅ echo the request origin
     } else {
       callback(new Error("Not allowed by CORS"));
     }
@@ -39,9 +41,8 @@ const app = express();
 
 //ai-study-buddy-silk.vercel.app'
 
-// https: app.use(cors(corsOptions));
-// app.options(/.*/, cors(corsOptions)); // preflight requests
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+https: app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions)); // preflight requests
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {
