@@ -6,7 +6,6 @@ import remarkGfm from "remark-gfm";
 import Select from "react-select";
 const API_BASE = import.meta.env.VITE_API_URL;
 
-
 export default function Quiz({ quizJSON, setQuizActive }) {
   const [answers, setAnswers] = useState({});
   const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -29,7 +28,7 @@ export default function Quiz({ quizJSON, setQuizActive }) {
       console.log(newAnswers[`option-${key}`].answer);
       if (question.correct_answer == newAnswers[`option-${key}`].answer) {
         newAnswers[`option-${key}`].isCorrect = true;
-        corrAnswers= corrAnswers + 1;
+        corrAnswers = corrAnswers + 1;
       }
     });
     console.log("Selected answers after check: ", newAnswers);
@@ -44,145 +43,136 @@ export default function Quiz({ quizJSON, setQuizActive }) {
       {quizGraded ? (
         quizJSON.questions.map((question, index) => {
           return (
-            <div key={index} id={`question-${index}`}>
-              <div>Question {index + 1}.</div>
-              <div>{question.question}</div>
-              <fieldset id={`options-${index}`}>
-                {Object.entries(question.options).map(([key, value]) => {
-                  console.log(answers[`option-${index}`]);
-                  if (
-                    answers[`option-${index}`].answer ==
-                      question.correct_answer &&
-                    question.correct_answer == key
-                  ) {
-                    return (
-                      <>
-                        <label
-                          htmlFor={value}
-                          key={key}
-                          style={{
-                            display: "flex",
-                            backgroundColor: "green",
-                          }}
-                        >
-                          {key}:{" "}
-                          <label
-                            type="radio"
-                            disabled={true}
-                            value={key}
-                            id={value}
-                            name={`option-${index}`}
-                          />{" "}
-                          {value}
-                        </label>
-                      </>
-                    );
-                  } else if (answers[`option-${index}`].answer == key) {
-                    return (
-                      <>
-                        <label
-                          htmlFor={value}
-                          key={key}
-                          style={{
-                            display: "flex",
-                            backgroundColor: "red",
-                          }}
-                        >
-                          {key}:{" "}
-                          <label
-                            type="radio"
-                            disabled={true}
-                            value={key}
-                            id={value}
-                            name={`option-${index}`}
-                          />{" "}
-                          {value}
-                        </label>
-                      </>
-                    );
-                  } else if (question.correct_answer == key) {
-                    return (
-                      <>
-                        <label
-                          htmlFor={value}
-                          key={key}
-                          style={{
-                            display: "flex",
-                            backgroundColor: "green",
-                          }}
-                        >
-                          {key}:{" "}
-                          <label
-                            type="radio"
-                            disabled={true}
-                            value={key}
-                            id={value}
-                            name={`option-${index}`}
-                          />{" "}
-                          {value}
-                        </label>
-                      </>
-                    );
-                  } else {
-                    return (
-                      <>
-                        <label
-                          htmlFor={value}
-                          key={key}
-                          style={{
-                            display: "flex",
-                          }}
-                        >
-                          {key}:{" "}
-                          <label
-                            type="radio"
-                            disabled={true}
-                            value={key}
-                            id={value}
-                            name={`option-${index}`}
-                          />{" "}
-                          {value}
-                        </label>
-                      </>
-                    );
-                  }
-                })}
-              </fieldset>
-              <div>Correct answer: {question.correct_answer}</div>
-              {question.explanation}
-            </div>
-          );
-        })
-      ) : (
-        <form onSubmit={submitQuiz}>
-          {quizJSON.questions.map((question, index) => {
-            return (
-              <div key={index} id={`question-${index}`}>
+            <>
+              <div
+                key={index}
+                id={`question-${index}`}
+                className="quiz-question"
+              >
                 <div>Question {index + 1}.</div>
                 <div>{question.question}</div>
                 <fieldset id={`options-${index}`}>
                   {Object.entries(question.options).map(([key, value]) => {
-                    return (
-                      <>
-                        <label
-                          htmlFor={`${value}-${index}`}
-                          key={key}
-                          style={{ display: "flex" }}
-                        >
-                          {key}:{" "}
-                          <input
-                            type="radio"
-                            value={key}
-                            id={`${value}-${index}`}
-                            name={`option-${index}`}
-                          />{" "}
-                          {value}
-                        </label>
-                      </>
-                    );
+                    console.log(answers[`option-${index}`]);
+                    if (
+                      answers[`option-${index}`].answer ==
+                        question.correct_answer &&
+                      question.correct_answer == key
+                    ) {
+                      return (
+                        <>
+                          <label
+                            htmlFor={`${value}-${index}`}
+                            key={key}
+                            style={{ display: "flex" }}
+                            class="flex bg-green-500"
+                          >
+                            <div class="flex gap-2 flex-1 items-center content-center">
+                              <div class="flex-0">{key}:</div>
+                            </div>
+                            <div class="flex-10 text-left">{value}</div>
+                          </label>
+                        </>
+                      );
+                    } else if (answers[`option-${index}`].answer == key) {
+                      return (
+                        <>
+                          <label
+                            htmlFor={`${value}-${index}`}
+                            key={key}
+                            style={{ display: "flex" }}
+                            class="flex bg-red-500"
+                          >
+                            <div class="flex gap-2 flex-1 items-center content-center">
+                              <div class="flex-0">{key}:</div>
+                            </div>
+                            <div class="flex-10 text-left">{value}</div>
+                          </label>
+                        </>
+                      );
+                    } else if (question.correct_answer == key) {
+                      return (
+                        <>
+                          <label
+                            htmlFor={`${value}-${index}`}
+                            key={key}
+                            style={{ display: "flex" }}
+                            class="flex bg-green-500"
+                          >
+                            <div class="flex gap-2 flex-1 items-center content-center">
+                              <div class="flex-0">{key}:</div>
+                            </div>
+                            <div class="flex-10 text-left">{value}</div>
+                          </label>
+                        </>
+                      );
+                    } else {
+                      return (
+                        <>
+                          <label
+                            htmlFor={`${value}-${index}`}
+                            key={key}
+                            style={{ display: "flex" }}
+                            class="flex"
+                          >
+                            <div class="flex gap-2 flex-1 items-center content-center">
+                              <div class="flex-0">{key}:</div>
+                            </div>
+                            <div class="flex-10 text-left">{value}</div>
+                          </label>
+                        </>
+                      );
+                    }
                   })}
                 </fieldset>
+                <div>Correct answer: {question.correct_answer}</div>
+                {question.explanation}
               </div>
+              <div class="border-2 w-full"></div>
+            </>
+          );
+        })
+      ) : (
+        <form onSubmit={submitQuiz} className="quiz-open">
+          {quizJSON.questions.map((question, index) => {
+            return (
+              <>
+                <div
+                  key={index}
+                  id={`question-${index}`}
+                  className="quiz-question"
+                >
+                  <div>Question {index + 1}.</div>
+                  <div class="text-left">{question.question}</div>
+                  <fieldset id={`options-${index}`} className="quiz-options">
+                    {Object.entries(question.options).map(([key, value]) => {
+                      return (
+                        <>
+                          <label
+                            htmlFor={`${value}-${index}`}
+                            key={key}
+                            style={{ display: "flex" }}
+                            className="quiz-option"
+                          >
+                            <div class="flex gap-2 flex-1 items-center content-center">
+                              <div class="flex-0">{key}:</div>
+                              <input
+                                type="radio"
+                                value={key}
+                                id={`${value}-${index}`}
+                                name={`option-${index}`}
+                                class="flex-0"
+                              />
+                            </div>
+                            <div class="flex-10 text-left">{value}</div>
+                          </label>
+                        </>
+                      );
+                    })}
+                  </fieldset>
+                </div>
+                <div class="border-2 w-full"></div>
+              </>
             );
           })}
           <button type="submit">Submit</button>
@@ -190,10 +180,17 @@ export default function Quiz({ quizJSON, setQuizActive }) {
       )}
       {quizGraded && (
         <>
-        <div>Result: </div>
-        <div>{correctAnswers} out of {(Object.entries(answers).length)} Correct</div>
-        <div>{Math.floor((correctAnswers / (Object.entries(answers).length)) * 100)}%</div>
-        <button onClick={() => setQuizGraded(false)}>Try Again</button>
+          <div>
+            Result: {correctAnswers} out of {Object.entries(answers).length}{" "}
+            Correct
+          </div>
+          <div>
+            {Math.floor(
+              (correctAnswers / Object.entries(answers).length) * 100
+            )}
+            %
+          </div>
+          <button onClick={() => setQuizGraded(false)}>Try Again</button>
         </>
       )}
       <button onClick={() => setQuizActive(false)}>Return</button>

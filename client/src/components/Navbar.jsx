@@ -6,7 +6,7 @@ export default function Navbar() {
   const { logout, status, user } = useAuth();
 
   return (
-    <nav style={{ padding: "10px", background: "#eee", width: "100%" }}>
+    <nav class="p-2 w-fill rounded-2xl bg-gray-200">
       <Link to="/" style={{ marginRight: "10px" }}>
         AI
       </Link>
