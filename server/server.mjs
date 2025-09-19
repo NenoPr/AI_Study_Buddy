@@ -1,12 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import pkg from "pg";
 import authRouter from "./routes/auth.mjs";
 import notesRouter from "./routes/notes.mjs";
 import aiRoutes from "./routes/ai.mjs";
+
 
 console.log(
   "OPENAI_API_KEY:",
@@ -40,6 +42,26 @@ const corsOptions = {
 const app = express();
 
 //ai-study-buddy-silk.vercel.app'
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "https://cdn.jsdelivr.net", "https://apis.google.com"],
+        "style-src": ["'self'", "https://fonts.googleapis.com"],
+        "font-src": ["'self'", "https://fonts.gstatic.com"],
+        "img-src": ["'self'", "data:", "https:"],
+      },
+    },
+    referrerPolicy: { policy: "no-referrer" },
+    crossOriginResourcePolicy: { policy: "same-origin" },
+  })
+);
+app.get("/", (req, res) => {
+  res.send("Helmet is protecting this app!");
+});
 
 https: app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions)); // preflight requests

@@ -25,3 +25,10 @@ export function authenticateToken(req, res, next) {
     res.status(403).json({ error: "Invalid token" });
   }
 }
+
+export function validateUserId(req, res, next) {
+  if (!req.user || !Number.isInteger(req.user.userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+  next();
+}

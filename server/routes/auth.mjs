@@ -2,89 +2,133 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { authenticateToken } from "../middleware/authMiddleware.mjs";
+import { body, validationResult } from "express-validator";
 
 const router = express.Router();
 const SALT_ROUNDS = 12;
 
 // Sign up route
-router.post("/signup", async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: "Email and password required" });
+router.post(
+  "/signup",
+  [
+    // ✅ Validation
+    body("email").isEmail().withMessage("Must be a valid email"),
+    body("password")
+      .isLength({ min: 4 })
+      .withMessage("Password must be at least 4 characters"),
 
-  try {
-    // Hash password
-    const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
-    // Insert user into DB
-    const result = await req.pool.query(
-      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email",
-      [email, password_hash]
-    );
+    // ✅ Sanitization
+    body("email").normalizeEmail(),
+    body("username").trim().escape(), // trims whitespace, escapes HTML chars
+  ],
+  async (req, res) => {
+    // Handle validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-    const user = result.rows[0];
+    // Safe, sanitized input
+    const { email, username, password } = req.body;
 
-    // Sign JWT with id
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    // if (!email || !password)
+    //   return res.status(400).json({ error: "Email and password required" });
 
-    res.status(201).json({ token });
-  } catch (error) {
-    if (error.code === "23505") {
-      // unique_violation
-      res.status(409).json({ error: "Email already exists" });
-    } else {
-      console.log(error);
+    try {
+      // Hash password
+      const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+      // Insert user into DB
+      const result = await req.pool.query(
+        "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email",
+        [email, password_hash]
+      );
+
+      const user = result.rows[0];
+
+      // Sign JWT with id
+      const token = jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      res.status(201).json({ token });
+    } catch (error) {
+      if (error.code === "23505") {
+        // unique_violation
+        res.status(409).json({ error: "Email already exists" });
+      } else {
+        console.log(error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    }
+  }
+);
+
+// Login route
+router.post(
+  "/login",
+  [
+    // ✅ Validation
+    body("email").isEmail().withMessage("Must be a valid email"),
+    body("password")
+      .isLength({ min: 4 })
+      .withMessage("Password must be at least 4 characters"),
+
+    // ✅ Sanitization
+    body("email").normalizeEmail(),
+    body("username").trim().escape(), // trims whitespace, escapes HTML chars
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // Safe, sanitized input
+    const { email, username, password } = req.body;
+
+    // if (!email || !password)
+    //   return res.status(400).json({ error: "Email and password required" });
+
+    try {
+      const result = await req.pool.query(
+        "SELECT * FROM users WHERE email = $1",
+        [email]
+      );
+      const user = result.rows[0];
+      if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+      // Compare passwords
+      const match = await bcrypt.compare(password, user.password_hash);
+      if (!match) return res.status(401).json({ error: "Invalid credentials" });
+
+      // Create JWT token
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      // HttpOnly + Secure cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: true, // must be true in production with https
+        sameSite: "none", // allow cross-site cookies
+        domain: "ai-study-buddy-23z2.onrender.com", // force cookie on backend domain
+        // secure: false, // set true if using HTTPS
+        // sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 1000, // 1h
+      });
+
+      res.json({ message: "Login Successful!", token });
+    } catch (error) {
+      console.error(error);
       res.status(500).json({ error: "Internal server error" });
     }
   }
-});
-
-// Login route
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: "Email and password required" });
-
-  try {
-    const result = await req.pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
-    const user = result.rows[0];
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
-
-    // Compare passwords
-    const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) return res.status(401).json({ error: "Invalid credentials" });
-
-    // Create JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    // HttpOnly + Secure cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true, // must be true in production with https
-      sameSite: "none", // allow cross-site cookies
-      domain: "ai-study-buddy-23z2.onrender.com", // force cookie on backend domain
-      // secure: false, // set true if using HTTPS
-      // sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 1000, // 1h
-    });
-
-    res.json({ message: "Login Successful!", token });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+);
 
 router.get("/signup", async (req, res) => {
   res.json({ message: "signup route hit!" });

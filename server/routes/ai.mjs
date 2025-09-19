@@ -1,41 +1,57 @@
 import { Router } from "express";
 import express, { json } from "express";
-import { authenticateToken } from "../middleware/authMiddleware.mjs";
+import { authenticateToken, validateUserId } from "../middleware/authMiddleware.mjs";
+import { body, validationResult } from "express-validator";
 import OpenAI from "openai";
 
 const router = Router();
 router.use(authenticateToken);
+router.use(validateUserId)
 
 // Answers the users question
-router.post("/ask", async (req, res) => {
-  console.log(req.body.question);
-  try {
-    const userId = req.user?.userId;
+router.post(
+  "/ask",
+  [
+    // ✅ Validation
+    body("question"),
+    // ✅ Sanitization
+    body("question"),
+  ],
+  async (req, res) => {
+    console.log(req.body.question);
+    // Handle validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const question = req.body.question;
 
-    // Call OpenAI
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    try {
+      // Call OpenAI
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      temperature: 0.3, // low creativity to reduce hallucinations
-      max_tokens: 4096,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful study assistant. Answer the students questions. Use the .md format to format them, make them look easy to understand and pleasing to see.",
-        },
-        { role: "user", content: `${req.body.question}` },
-      ],
-    });
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        temperature: 0.3, // low creativity to reduce hallucinations
+        max_tokens: 4096,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful study assistant. Answer the students questions. Use the .md format to format them, make them look easy to understand and pleasing to see.",
+          },
+          { role: "user", content: `${question}` },
+        ],
+      });
 
-    const answer = response.choices[0].message.content;
-    res.json({ answer });
-  } catch (err) {
-    console.error("AI route error:", err);
-    res.status(500).json({ error: err.message });
+      const answer = response.choices[0].message.content;
+      res.json({ answer });
+    } catch (err) {
+      console.error("AI route error:", err);
+      res.status(500).json({ error: err.message });
+    }
   }
-});
+);
 
 // Answers a question regarding a note
 router.post("/askNote", async (req, res) => {
@@ -328,9 +344,9 @@ router.get("/createQuiz/:id", async (req, res) => {
 router.post("/createQuiz/group", async (req, res) => {
   const userId = req.user?.userId;
   const groups = req.body.groups;
-  if (!groups){
-    res.json("No groups selected...")
-    return
+  if (!groups) {
+    res.json("No groups selected...");
+    return;
   }
   const JSONStructure = `"\"question\": \"Question string\",\n  \"options\": {\n    \"a\": \"option string\",\n    \"b\": \"option string\",\n    \"c\": \"option string\",\n    \"d\": \"option string\"\n  },\n  \"correct_answer\": \"correct option string, a,b,c or d character\",\n  \"explanation\": \"The correct answer explanation string\""`;
   const client = await req.pool.connect();
