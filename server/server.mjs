@@ -43,6 +43,9 @@ const app = express();
 
 //ai-study-buddy-silk.vercel.app'
 
+//app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions)); // preflight requests
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -56,16 +59,10 @@ app.use(
       },
     },
     referrerPolicy: { policy: "no-referrer" },
-    crossOriginResourcePolicy: { policy: "same-origin" },
+    // allow cross-origin resource sharing for your front-end
+    crossOriginResourcePolicy: false,
   })
 );
-app.get("/", (req, res) => {
-  res.send("Helmet is protecting this app!");
-});
-
-//app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-https: app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions)); // preflight requests
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {
