@@ -113,13 +113,13 @@ router.post(
       // HttpOnly + Secure cookie
       res.cookie("token", token, {
         httpOnly: true,
-      // secure: true, // must be true in production with https
-      // sameSite: "none", // allow cross-site cookies
-      // domain: "ai-study-buddy-23z2.onrender.com", // force cookie on backend domain
-      secure: false, // set true if using HTTPS
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 1000, // 1h
+        // secure: false, // set true if using HTTPS
+        // sameSite: "lax",
+        secure: true, // must be true in production with https
+        sameSite: "none", // allow cross-site cookies
+        domain: "ai-study-buddy-23z2.onrender.com", // force cookie on backend domain
+        path: "/",
+        maxAge: 60 * 60 * 1000, // 1h
       });
 
       res.json({ message: "Login Successful!", token });
