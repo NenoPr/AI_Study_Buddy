@@ -32,6 +32,7 @@ export default function Quiz({ quizJSON, setQuizActive }) {
       }
     });
     console.log("Selected answers after check: ", newAnswers);
+    window.scrollTo({top: 0, behavior: 'smooth'})
     setAnswers(newAnswers);
     setCorrectAnswers(corrAnswers);
     setQuizGraded(true);
@@ -61,65 +62,85 @@ export default function Quiz({ quizJSON, setQuizActive }) {
                     ) {
                       return (
                         <>
-                          <label
-                            htmlFor={`${value}-${index}`}
-                            key={key}
-                            style={{ display: "flex" }}
-                            class="flex bg-green-500"
-                          >
-                            <div class="flex gap-2 flex-1 items-center content-center">
-                              <div class="flex-0">{key}:</div>
-                            </div>
-                            <div class="flex-10 text-left">{value}</div>
-                          </label>
+                          <div className="flex flex-col gap-2 bg-green-500 rounded-md">
+                            <input
+                              type="radio"
+                              id={`${value}-${index}`}
+                              name={`option-${index}`}
+                              value={key}
+                              className="peer hidden" // hide the default radio button
+                            />
+                            <label
+                              htmlFor={`${value}-${index}`}
+                              className="flex items-center gap-3 p-2 border rounded-md cursor-pointer"
+                            >
+                              <div className="font-bold">{key}:</div>
+                              <div className="flex-1 text-left">{value}</div>
+                            </label>
+                          </div>
                         </>
                       );
                     } else if (answers[`option-${index}`].answer == key) {
                       return (
                         <>
-                          <label
-                            htmlFor={`${value}-${index}`}
-                            key={key}
-                            style={{ display: "flex" }}
-                            class="flex bg-red-500"
-                          >
-                            <div class="flex gap-2 flex-1 items-center content-center">
-                              <div class="flex-0">{key}:</div>
-                            </div>
-                            <div class="flex-10 text-left">{value}</div>
-                          </label>
+                          <div className="flex flex-col gap-2 bg-red-500 rounded-md">
+                            <input
+                              type="radio"
+                              id={`${value}-${index}`}
+                              name={`option-${index}`}
+                              value={key}
+                              className="peer hidden" // hide the default radio button
+                            />
+                            <label
+                              htmlFor={`${value}-${index}`}
+                              className="flex items-center gap-3 p-2 border rounded-md"
+                            >
+                              <div className="font-bold">{key}:</div>
+                              <div className="flex-1 text-left">{value}</div>
+                            </label>
+                          </div>
                         </>
                       );
                     } else if (question.correct_answer == key) {
                       return (
                         <>
-                          <label
-                            htmlFor={`${value}-${index}`}
-                            key={key}
-                            style={{ display: "flex" }}
-                            class="flex bg-green-500"
-                          >
-                            <div class="flex gap-2 flex-1 items-center content-center">
-                              <div class="flex-0">{key}:</div>
-                            </div>
-                            <div class="flex-10 text-left">{value}</div>
-                          </label>
+                          <div className="flex flex-col gap-2 bg-green-500 rounded-md">
+                            <input
+                              type="radio"
+                              id={`${value}-${index}`}
+                              name={`option-${index}`}
+                              value={key}
+                              className="peer hidden" // hide the default radio button
+                            />
+                            <label
+                              htmlFor={`${value}-${index}`}
+                              className="flex items-center gap-3 p-2 border rounded-md"
+                            >
+                              <div className="font-bold">{key}:</div>
+                              <div className="flex-1 text-left">{value}</div>
+                            </label>
+                          </div>
                         </>
                       );
                     } else {
                       return (
                         <>
-                          <label
-                            htmlFor={`${value}-${index}`}
-                            key={key}
-                            style={{ display: "flex" }}
-                            class="flex"
-                          >
-                            <div class="flex gap-2 flex-1 items-center content-center">
-                              <div class="flex-0">{key}:</div>
-                            </div>
-                            <div class="flex-10 text-left">{value}</div>
-                          </label>
+                          <div className="flex flex-col gap-2">
+                            <input
+                              type="radio"
+                              id={`${value}-${index}`}
+                              name={`option-${index}`}
+                              value={key}
+                              className="peer hidden" // hide the default radio button
+                            />
+                            <label
+                              htmlFor={`${value}-${index}`}
+                              className="flex items-center gap-3 p-2 border rounded-md"
+                            >
+                              <div className="font-bold">{key}:</div>
+                              <div className="flex-1 text-left">{value}</div>
+                            </label>
+                          </div>
                         </>
                       );
                     }
@@ -148,30 +169,29 @@ export default function Quiz({ quizJSON, setQuizActive }) {
                     {Object.entries(question.options).map(([key, value]) => {
                       return (
                         <>
-                          <label
-                            htmlFor={`${value}-${index}`}
-                            key={key}
-                            style={{ display: "flex" }}
-                            className="quiz-option"
-                          >
-                            <div class="flex gap-2 flex-1 items-center content-center">
-                              <div class="flex-0">{key}:</div>
-                              <input
-                                type="radio"
-                                value={key}
-                                id={`${value}-${index}`}
-                                name={`option-${index}`}
-                                class="flex-0"
-                              />
-                            </div>
-                            <div class="flex-10 text-left">{value}</div>
-                          </label>
+                          <div className="flex flex-col gap-2">
+                            <input
+                              type="radio"
+                              id={`${value}-${index}`}
+                              name={`option-${index}`}
+                              value={key}
+                              className="peer hidden" // hide the default radio button
+                            />
+                            <label
+                              htmlFor={`${value}-${index}`}
+                              className="flex items-center gap-3 p-2 border rounded-md cursor-pointer 
+               peer-checked:bg-blue-500 hover:border-blue-500"
+                            >
+                              <div className="font-bold">{key}:</div>
+                              <div className="flex-1 text-left">{value}</div>
+                            </label>
+                          </div>
                         </>
                       );
                     })}
                   </fieldset>
                 </div>
-                <div class="border-2 w-full"></div>
+                <div class="border-2 w-full" key={`${index}-seperator`}></div>
               </>
             );
           })}
@@ -190,7 +210,7 @@ export default function Quiz({ quizJSON, setQuizActive }) {
             )}
             %
           </div>
-          <button onClick={() => setQuizGraded(false)}>Try Again</button>
+          <button onClick={() => {setQuizGraded(false), window.scrollTo({top: 0, behavior: 'smooth'})}}>Try Again</button>
         </>
       )}
       <button onClick={() => setQuizActive(false)}>Return</button>

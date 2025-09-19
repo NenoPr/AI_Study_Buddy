@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRef, useEffect } from "react";
 import { useQuizContext } from "../../context/QuizContext";
+import { useLoadingContext } from "@/context/loadingContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
@@ -26,7 +27,6 @@ export default function ShowNotes({
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const [addToGroup, setAddToGroup] = useState(false);
@@ -39,6 +39,7 @@ export default function ShowNotes({
   const { token } = useAuth();
   const textareaRef = useRef(null);
   const { quizActive, setQuizActive, quizJSON, setQuizJSON } = useQuizContext();
+  const { loading, setLoading } = useLoadingContext()
 
   useEffect(() => {
     console.log("activeGroups: ", activeGroups[0]);
@@ -428,7 +429,8 @@ export default function ShowNotes({
         )
       )}
       {/* Renders all selected notes  */}
-      {notes &&
+      {loading ? <div>Loading...</div> :
+      notes &&
         !noteOpen &&
         !summarizeGroupsResponse &&
         !addNoteBool &&

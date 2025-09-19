@@ -8,16 +8,17 @@ import DeleteGroup from "../components/Notes/DeleteGroup";
 import ShowNotes from "../components/Notes/ShowNotes";
 import "../css/notes.css";
 import { useQuizContext } from "../context/QuizContext";
+import { useLoadingContext } from "@/context/loadingContext";
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function NotesPage() {
+  const { loading, setLoading } = useLoadingContext();
   const { token } = useAuth();
   const [notes, setNotes] = useState([]);
   // const [groups, setGroups] = useState([]);
   const [isDisabled, setIsDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeComponent, setActiveComponent] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
   const {
@@ -28,8 +29,8 @@ export default function NotesPage() {
     groups,
     setGroups,
   } = useGroupSummary();
-  const { quizActive, setQuizActive, quizJSON, setQuizJSON } =
-    useQuizContext();
+  const { quizActive, setQuizActive, quizJSON, setQuizJSON } = useQuizContext();
+
   // const [groupsSelected, setGroupsSelected] = useState(null);
   // const [summarizeGroupsResponse, setSummarizeGroupsResponse] = useState("")
 
@@ -47,6 +48,7 @@ export default function NotesPage() {
   // Fetch notes only when token is ready
   const fetchNotes = async () => {
     const controller = new AbortController();
+    setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/notes`, {
         method: "GET",
@@ -96,12 +98,15 @@ export default function NotesPage() {
     } catch (err) {
       console.error(err);
       setGroups([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchNotesGroups = async (selected) => {
     console.log("selected", selected);
     setGroupsSelected(selected);
+    setLoading(true);
     if (!selected || selected.length === 0) {
       await fetchNotes();
       return;
@@ -141,6 +146,7 @@ export default function NotesPage() {
     } finally {
       setIsDisabled(false);
       setIsLoading(false);
+      setLoading(false);
       return () => controller.abort();
     }
   };
@@ -155,6 +161,7 @@ export default function NotesPage() {
     setIsLoading(true);
     setLoadingGroups(true);
     setLoadingNotes(false);
+    setLoading(true);
     console.log("groupIds: ", groupIds);
 
     try {
@@ -178,6 +185,7 @@ export default function NotesPage() {
       setIsLoading(false);
       setLoadingGroups(false);
       setLoadingNotes(false);
+      setLoading(false);
       return () => controller.abort();
     }
   };
@@ -189,7 +197,7 @@ export default function NotesPage() {
     try {
       const res = await fetch(`${API_BASE}/api/ai/createQuiz/group`, {
         method: "POST",
-        headers: {"Content-type": "application/json"},
+        headers: { "Content-type": "application/json" },
         body: JSON.stringify({ groups: groupIds }),
         credentials: "include",
       });
@@ -210,9 +218,7 @@ export default function NotesPage() {
 
   return (
     <div>
-      <div
-        class="flex flex-row justify-center m-5 gap-3"
-      >
+      <div class="flex flex-row justify-center m-5 gap-3">
         {/* <AddNote
           onNoteAdded={addNoteToState}
           refreshNotes={fetchNotes}
@@ -241,27 +247,25 @@ export default function NotesPage() {
           marginTop: "1rem",
         }}
       ></div>
-      <div
-        class="flex flex-col sm:flex-row sm:items-center gap-4"
-      >
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4">
         <div class="font-bold">Groups: </div>
         <div class="w-full sm:w-100">
-        <Select
-          options={groups}
-          isMulti
-          isDisabled={isDisabled}
-          isLoading={isLoading}
-          onChange={fetchNotesGroups}
-          styles={{
-            control: (baseStyles, state) => ({
-              ...baseStyles,
-              borderColor: state.isFocused ? "grey" : "red",
-              flexGrow: "1",
-              width: "100%"
-            }),
-          }}
+          <Select
+            options={groups}
+            isMulti
+            isDisabled={isDisabled}
+            isLoading={isLoading}
+            onChange={fetchNotesGroups}
+            styles={{
+              control: (baseStyles, state) => ({
+                ...baseStyles,
+                borderColor: state.isFocused ? "grey" : "red",
+                flexGrow: "1",
+                width: "100%",
+              }),
+            }}
           />
-          </div>
+        </div>
         <button onClick={getNotes} disabled={loading}>
           {loadingNotes ? "Fetching notes..." : "Fetch notes"}
         </button>
