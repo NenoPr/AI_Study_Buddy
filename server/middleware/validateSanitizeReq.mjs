@@ -1,4 +1,6 @@
 import { body, param, query, validationResult } from "express-validator";
+import sanitizeHtml from "sanitize-html";
+import { marked } from "marked";
 
 /**
  * validateAndSanitizeId
@@ -24,24 +26,32 @@ export const validateAndSanitizeId = ({
   const checks = [];
 
   if (isArray) {
-    // Field must be an array
+    const elementValidator =
+      location === "body"
+        ? body(`${fieldName}.*`)
+        : location === "params"
+        ? param(`${fieldName}.*`)
+        : query(`${fieldName}.*`);
+
     checks.push(
       validator
+        .optional({ checkFalsy: true })
         .isArray({ min: 1 })
         .withMessage(`${fieldName} must be a non-empty array`)
     );
 
-    // Each element
     if (type === "int") {
       checks.push(
-        body(`${fieldName}.*`)
+        elementValidator
+          .optional({ checkFalsy: true })
           .isInt({ min: 1 })
           .withMessage("Each ID must be a positive integer")
           .toInt()
       );
     } else if (type === "uuid") {
       checks.push(
-        body(`${fieldName}.*`)
+        elementValidator
+          .optional({ checkFalsy: true })
           .isUUID(4)
           .withMessage("Each ID must be a valid UUIDv4")
           .trim()
@@ -50,6 +60,7 @@ export const validateAndSanitizeId = ({
   } else {
     // Single ID
     if (type === "int") {
+      console.log(validator);
       checks.push(
         validator
           .isInt({ min: 1 })
@@ -58,10 +69,7 @@ export const validateAndSanitizeId = ({
       );
     } else if (type === "uuid") {
       checks.push(
-        validator
-          .isUUID(4)
-          .withMessage("ID must be a valid UUIDv4")
-          .trim()
+        validator.isUUID(4).withMessage("ID must be a valid UUIDv4").trim()
       );
     }
   }
@@ -69,9 +77,40 @@ export const validateAndSanitizeId = ({
   // Middleware to handle errors
   checks.push((req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) {
+      console.log("Id sani", errors.array());
+      return res.status(400).json({ errors: errors.array() });
+    }
     next();
   });
 
   return checks;
 };
+
+export const validateNote = [
+  body("title")
+    .exists()
+    .withMessage("Title is required")
+    .isString()
+    .withMessage("Title must be a string")
+    .trim()
+    .isLength({ min: 1, max: 200 })
+    .withMessage("Title must be 1–200 characters"),
+
+  body("content")
+    .optional()
+    .isString()
+    .withMessage("Content must be a string")
+    .trim()
+    .isLength({ min: 1, max: 100000 })
+    .withMessage("Content must be 1–100000 characters"),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log("validateNote", errors.array());
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  },
+];

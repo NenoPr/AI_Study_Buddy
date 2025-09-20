@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import pkg from "pg";
@@ -20,6 +21,15 @@ const { Pool } = pkg;
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET must be set in environment variables");
 }
+
+// Apply to all requests
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { error: "Too many requests, please try again later." },
+});
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -63,6 +73,7 @@ app.use(
     crossOriginResourcePolicy: false,
   })
 );
+app.use(globalLimiter);
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {

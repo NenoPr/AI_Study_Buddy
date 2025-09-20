@@ -57,7 +57,7 @@ export default function ShowNotes({
 
   const deleteNote = async (id) => {
     try {
-      const res = await fetch(`${API_BASE}/api/notes/${id}`, {
+      const res = await fetch(`${API_BASE}/api/notes/note/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
