@@ -3,13 +3,17 @@ dotenv.config();
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import {
+  globalLimiter,
+  loginLimiter,
+  aiLimiter,
+} from "./middleware/rateLimiters.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import pkg from "pg";
 import authRouter from "./routes/auth.mjs";
 import notesRouter from "./routes/notes.mjs";
 import aiRoutes from "./routes/ai.mjs";
-
 
 console.log(
   "OPENAI_API_KEY:",
@@ -21,15 +25,6 @@ const { Pool } = pkg;
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET must be set in environment variables");
 }
-
-// Apply to all requests
-// const globalLimiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-//   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-//   message: { error: "Too many requests, please try again later." },
-// });
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -62,7 +57,11 @@ app.use(
       useDefaults: true,
       directives: {
         "default-src": ["'self'"],
-        "script-src": ["'self'", "https://cdn.jsdelivr.net", "https://apis.google.com"],
+        "script-src": [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+          "https://apis.google.com",
+        ],
         "style-src": ["'self'", "https://fonts.googleapis.com"],
         "font-src": ["'self'", "https://fonts.gstatic.com"],
         "img-src": ["'self'", "data:", "https:"],
@@ -85,8 +84,14 @@ app.use("/api/notes", notesRouter);
 app.use("/api/ai", aiRoutes);
 
 const pool = new Pool({
-  connectionString: process.env.NODE_ENV === "production" ?  process.env.DATABASE_URL  : process.env.LOCAL_DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+  connectionString:
+    process.env.NODE_ENV === "production"
+      ? process.env.DATABASE_URL
+      : process.env.LOCAL_DATABASE_URL,
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
 pool
@@ -98,5 +103,10 @@ app.get("/", (req, res) => {
   res.send("Hello from AI Study Buddy backend!");
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+export default app;
+
+// Only start server if run directly
+if (process.env.NODE_ENV !== "test") {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}

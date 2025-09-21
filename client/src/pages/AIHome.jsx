@@ -99,6 +99,7 @@ export default function AIHome() {
       });
     } catch (err) {
       console.error(err);
+      alert(err)
       setGroups([]);
     } finally {
       window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})
@@ -145,6 +146,7 @@ export default function AIHome() {
       });
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       alert(`Created a note under the title: ${AiTitle}`);
       setTitle("");

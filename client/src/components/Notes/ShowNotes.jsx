@@ -39,7 +39,7 @@ export default function ShowNotes({
   const { token } = useAuth();
   const textareaRef = useRef(null);
   const { quizActive, setQuizActive, quizJSON, setQuizJSON } = useQuizContext();
-  const { loading, setLoading } = useLoadingContext()
+  const { loading, setLoading, showError, setShowError } = useLoadingContext()
 
   useEffect(() => {
     console.log("activeGroups: ", activeGroups[0]);
@@ -66,6 +66,7 @@ export default function ShowNotes({
       });
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setIsEditingNote(false);
       setNoteOpen(false);
@@ -92,6 +93,7 @@ export default function ShowNotes({
       setSummarizeGroupsResponse(data.summary);
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setLoading(false);
       setIsEditingId("");
@@ -114,6 +116,7 @@ export default function ShowNotes({
       console.log(dataJSON);
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setLoading(false);
       setIsEditingId("");
@@ -144,7 +147,7 @@ export default function ShowNotes({
       console.log("Response:", resData);
     } catch (err) {
       console.error(err);
-      console.log(data, itemId);
+      alert(err)
     } finally {
       setIsEditingNote(false);
       getNotes();
@@ -182,6 +185,7 @@ export default function ShowNotes({
       });
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setAddToGroup(true);
     }
@@ -208,6 +212,7 @@ export default function ShowNotes({
       console.log("Response:", results);
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       if (!noteOpen) {
         setIsEditingId("");
@@ -264,6 +269,7 @@ export default function ShowNotes({
       });
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       alert(`Created a note under the title: ${AiTitle}`);
       setTitle("");

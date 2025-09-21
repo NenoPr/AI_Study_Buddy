@@ -60,7 +60,6 @@ export const validateAndSanitizeId = ({
   } else {
     // Single ID
     if (type === "int") {
-      console.log(validator);
       checks.push(
         validator
           .isInt({ min: 1 })
@@ -78,7 +77,7 @@ export const validateAndSanitizeId = ({
   checks.push((req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log("Id sani", errors.array());
+      console.log("Array Id sanitization:", errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
     next();
