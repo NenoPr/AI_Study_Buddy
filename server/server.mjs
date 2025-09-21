@@ -26,6 +26,7 @@ if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET must be set in environment variables");
 }
 
+
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true); // server-to-server
