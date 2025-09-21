@@ -12,7 +12,6 @@ import { useLoadingContext } from "@/context/loadingContext";
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function NotesPage() {
-  const { loading, setLoading } = useLoadingContext();
   const { token } = useAuth();
   const [notes, setNotes] = useState([]);
   // const [groups, setGroups] = useState([]);
@@ -30,6 +29,7 @@ export default function NotesPage() {
     setGroups,
   } = useGroupSummary();
   const { quizActive, setQuizActive, quizJSON, setQuizJSON } = useQuizContext();
+  const { loading, setLoading } = useLoadingContext();
 
   // const [groupsSelected, setGroupsSelected] = useState(null);
   // const [summarizeGroupsResponse, setSummarizeGroupsResponse] = useState("")
@@ -65,6 +65,7 @@ export default function NotesPage() {
       setNotes(data.notes || []);
     } catch (err) {
       console.error(err);
+      alert(err)
       setNotes([]);
     }
     await fetchGroups();
@@ -97,6 +98,7 @@ export default function NotesPage() {
       });
     } catch (err) {
       console.error(err);
+      alert(err)
       setGroups([]);
     } finally {
       setLoading(false);
@@ -142,6 +144,7 @@ export default function NotesPage() {
       setNotes(deduped);
     } catch (err) {
       console.error(err);
+      alert(err)
       setNotes([]);
     } finally {
       setIsDisabled(false);
@@ -180,6 +183,7 @@ export default function NotesPage() {
       setSummarizeGroupsResponse(results.summary);
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setIsDisabled(false);
       setIsLoading(false);
@@ -209,6 +213,7 @@ export default function NotesPage() {
       console.log(dataJSON);
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setLoading(false);
       setQuizActive(true);

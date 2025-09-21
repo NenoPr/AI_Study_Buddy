@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useLoadingContext } from "@/context/loadingContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
@@ -23,6 +24,8 @@ export default function AddNote({
   const [selectIsDisabled, setSelectIsDisabled] = useState(false);
   const [selectIsLoading, setSelectIsLoading] = useState(false);
   const { token } = useAuth();
+  const { showError, setShowError } = useLoadingContext();
+
 
   // ✅ This function is async
   const addNote = async (e) => {
@@ -47,6 +50,7 @@ export default function AddNote({
       }
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setLoading(false);
       setNoteAdd(false);

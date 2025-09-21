@@ -5,10 +5,11 @@ const LoadingContext = createContext();
 
 export function LoadingProvider({ children }) {
   const [loading, setLoading] = useState(false);
+  const [showError, setShowError] = useState("")
 
   return (
     <LoadingContext.Provider
-      value={{ loading, setLoading }}
+      value={{ loading, setLoading, showError, setShowError }}
     >
       {children}
     </LoadingContext.Provider>

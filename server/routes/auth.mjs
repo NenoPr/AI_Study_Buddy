@@ -3,9 +3,12 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { authenticateToken } from "../middleware/authMiddleware.mjs";
 import { body, validationResult } from "express-validator";
+import { loginLimiter } from "./middleware/rateLimiters.js";
 
 const router = express.Router();
 const SALT_ROUNDS = 12;
+
+router.use(loginLimiter)
 
 // Sign up route
 router.post(

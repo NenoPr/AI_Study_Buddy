@@ -32,6 +32,7 @@ export default function AddNote({ selectGroups, fetchGroups, setActiveComponent,
       console.log(data)
     } catch (err) {
       console.error(err);
+      alert(err)
     } finally {
       setLoading(false);
       setGroupDelete(false);
