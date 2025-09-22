@@ -53,7 +53,12 @@ router.get("/", async (req, res) => {
 router.post(
   "/",
   validateNote,
-  validateAndSanitizeId({ location: "body", type: "int", fieldName: "groups", isArray: true }),
+  validateAndSanitizeId({
+    location: "body",
+    type: "int",
+    fieldName: "groups",
+    isArray: true,
+  }),
   async (req, res) => {
     const userId = req.user.userId;
     const title = req.body.title;
@@ -91,7 +96,7 @@ router.post(
 
 // UPDATE a note by id
 router.put(
-  "/:id",
+  "/note/:id",
   validateNote,
   validateAndSanitizeId({ location: "params", type: "int", fieldName: "id" }),
   async (req, res) => {
@@ -133,7 +138,7 @@ router.delete(
   async (req, res) => {
     const userId = req.user.userId;
     const { id } = req.params;
-    console.log("ID:",id)
+    console.log("ID:", id);
     const client = await req.pool.connect();
 
     try {
@@ -195,7 +200,7 @@ router.post(
     location: "body",
     type: "int",
     fieldName: "notes_ids",
-    isArray: true
+    isArray: true,
   }),
   async (req, res) => {
     const errors = validationResult(req);
@@ -249,8 +254,6 @@ router.put(
       .isString()
       .withMessage("Group name must be a string")
       .trim()
-      .matches(/^[\p{L}\p{N}\p{P}\p{Zs}]+$/u)
-      .withMessage("Group name contains invalid characters")
       .isLength({ min: 1, max: 200 })
       .withMessage("Group name must be 1–200 characters"),
   ],
@@ -258,7 +261,7 @@ router.put(
     location: "body",
     type: "int",
     fieldName: "group_id",
-    isArray: true
+    isArray: false,
   }),
   async (req, res) => {
     const errors = validationResult(req);
@@ -271,14 +274,13 @@ router.put(
     const group_id = req.body.group_id;
     console.log("Values passed: ", name, group_id);
 
+    const client = await req.pool.connect();
     try {
-      const client = await req.pool.connect();
-
       await client.query("BEGIN");
-      const result = await client.query(
-        "UPDATE groups SET name=$1 WHERE id=$2 AND user_id=$3 RETURNING *"[
-          (name, group_id, userId)
-        ]
+
+      await client.query(
+        "UPDATE groups SET name=$1 WHERE id=$2 AND user_id=$3",
+        [name, group_id, userId]
       );
 
       await client.query("COMMIT");
@@ -299,7 +301,7 @@ router.delete(
     location: "body",
     type: "int",
     fieldName: "ids",
-    isArray: true
+    isArray: true,
   }),
   async (req, res) => {
     const ids = req.body.ids;
@@ -459,7 +461,7 @@ router.post(
     location: "body",
     type: "int",
     fieldName: "group_ids",
-    isArray: true
+    isArray: true,
   }),
   async (req, res) => {
     const { note_id, group_ids } = req.body;

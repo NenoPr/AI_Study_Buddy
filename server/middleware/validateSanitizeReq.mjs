@@ -62,9 +62,9 @@ export const validateAndSanitizeId = ({
     if (type === "int") {
       checks.push(
         validator
-          .isInt({ min: 1 })
-          .withMessage("ID must be a positive integer")
-          .toInt()
+        .isInt({ min: 1 })
+        .withMessage("ID must be a positive integer")
+        .toInt()
       );
     } else if (type === "uuid") {
       checks.push(

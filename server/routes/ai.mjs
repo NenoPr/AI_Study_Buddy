@@ -6,15 +6,13 @@ import {
 } from "../middleware/authMiddleware.mjs";
 import { validateAndSanitizeId } from "../middleware/validateSanitizeReq.mjs";
 import { body, validationResult } from "express-validator";
-import { aiLimiter } from "./middleware/rateLimiters.js";
-import { authMiddleware } from "./middleware/auth.js"; // assumes you set req.user
+import { aiLimiter } from "../middleware/rateLimiters.mjs";
 import OpenAI from "openai";
 
 const router = Router();
 router.use(authenticateToken);
 router.use(validateUserId);
 router.use(aiLimiter);
-router.use(authMiddleware)
 
 // Answers the users question
 router.post(
