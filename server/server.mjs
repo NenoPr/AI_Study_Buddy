@@ -7,7 +7,7 @@ import {
   globalLimiter,
   loginLimiter,
   aiLimiter,
-} from "./middleware/rateLimiters.js";
+} from "./middleware/rateLimiters.mjs";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import pkg from "pg";

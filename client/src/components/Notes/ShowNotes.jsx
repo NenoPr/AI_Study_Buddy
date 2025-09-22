@@ -135,7 +135,7 @@ export default function ShowNotes({
     const data = { title, content };
     // console.log(itemId, title, content);
     try {
-      const res = await fetch(`${API_BASE}/api/notes/${itemId}`, {
+      const res = await fetch(`${API_BASE}/api/notes/note/${itemId}`, {
         method: "PUT",
         headers: {
           "Content-type": "application/json",

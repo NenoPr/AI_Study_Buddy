@@ -4,32 +4,35 @@ import Select from "react-select";
 import { Input } from "@/components/ui/input";
 const API_BASE = import.meta.env.VITE_API_URL;
 
-export default function DeleteGroup({
+export default function RenameGroup({
   selectGroups,
   fetchGroups,
   setActiveComponent,
   activeComponent,
 }) {
   const [loading, setLoading] = useState(false);
-  const [groups, setGroups] = useState([]);
-  const [groupDelete, setGroupDelete] = useState(false);
+  const [group, setGroup] = useState([]);
+  const [groupRename, setGroupRename] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
   const { token } = useAuth();
 
-  if (activeComponent && activeComponent !== "groupDelete") return;
+
+  if (activeComponent && activeComponent !== "groupRename") return;
 
   // ✅ This function is async
-  const deleteGroups = async (e) => {
+  const renameGroup = async (e) => {
     e.preventDefault();
     setLoading(true);
+    console.log("groupName", newGroupName);
 
     try {
       // await is only here, inside the async function
       const res = await fetch(`${API_BASE}/api/notes/groups`, {
-        method: "DELETE",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ids: groups }),
+        body: JSON.stringify({ name: newGroupName, group_id: group }),
         credentials: "include",
       });
       const data = await res.json();
@@ -39,32 +42,31 @@ export default function DeleteGroup({
       alert(err);
     } finally {
       setLoading(false);
-      setGroupDelete(false);
-      setGroups([]);
+      setGroupRename(false);
+      setGroup([]);
       setActiveComponent(null);
       fetchGroups();
     }
   };
 
   function updateGroups(selected) {
-    const groupIds = selected.map((g) => Number(g.id)).filter(Boolean);
-    setGroups(groupIds);
+    const groupId = Number(selected.id);
+    setGroup(groupId);
   }
 
   return (
     <div>
-      {groupDelete ? (
+      {groupRename ? (
         <>
           <form
-            onSubmit={deleteGroups}
-            name="deleteGroups"
+            onSubmit={renameGroup}
+            name="renameGroups"
             className="flex flex-col gap-5"
           >
-            <h3>Delete Groups</h3>
-            <div>Select groups to delete</div>
+            <h3>Rename Groups</h3>
+            <div>Select a group to rename</div>
             <Select
               options={selectGroups}
-              isMulti
               styles={{
                 control: (baseStyles, state) => ({
                   ...baseStyles,
@@ -74,13 +76,20 @@ export default function DeleteGroup({
                 }),
               }}
               onChange={updateGroups}
+              required
+            />
+            <Input
+              type="text"
+              placeholder="Insert new name..."
+              onChange={(e) => setNewGroupName(e.target.value)}
+              required
             />
             <button type="submit" disabled={loading}>
-              {loading ? "Deleting groups..." : "Delete groups"}
+              {loading ? "Renaming group..." : "Rename group"}
             </button>
             <button
               onClick={() => {
-                setGroupDelete(false), setActiveComponent(null);
+                setGroupRename(false), setActiveComponent(null);
               }}
             >
               Cancel
@@ -90,11 +99,11 @@ export default function DeleteGroup({
       ) : (
         <button
           onClick={() => {
-            setGroupDelete(true);
-            setActiveComponent("groupDelete");
+            setGroupRename(true);
+            setActiveComponent("groupRename");
           }}
         >
-          Delete Group
+          Rename Group
         </button>
       )}
     </div>

@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { authenticateToken } from "../middleware/authMiddleware.mjs";
 import { body, validationResult } from "express-validator";
-import { loginLimiter } from "./middleware/rateLimiters.js";
+import { loginLimiter } from "../middleware/rateLimiters.mjs";
 
 const router = express.Router();
 const SALT_ROUNDS = 12;

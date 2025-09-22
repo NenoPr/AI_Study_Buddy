@@ -21,7 +21,7 @@ export const globalLimiter = rateLimit({
 // 🔐 Login limiter (prevent brute force attacks)
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // only 5 attempts per IP / 15min
+  max: 10, // only 5 attempts per IP / 15min
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many login attempts, please try again later." },

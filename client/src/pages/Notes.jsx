@@ -5,10 +5,12 @@ import Select from "react-select";
 import AddNote from "../components/Notes/AddNote";
 import AddGroup from "../components/Notes/AddGroups";
 import DeleteGroup from "../components/Notes/DeleteGroup";
+import RenameGroup from "@/components/Notes/RenameGroup";
 import ShowNotes from "../components/Notes/ShowNotes";
 import "../css/notes.css";
 import { useQuizContext } from "../context/QuizContext";
 import { useLoadingContext } from "@/context/loadingContext";
+import { Button } from "@/components/ui/button";
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function NotesPage() {
@@ -20,6 +22,7 @@ export default function NotesPage() {
   const [activeComponent, setActiveComponent] = useState(null);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
+  const [manageGroups, setManageGroups] = useState(false);
   const {
     summarizeGroupsResponse,
     setSummarizeGroupsResponse,
@@ -65,7 +68,7 @@ export default function NotesPage() {
       setNotes(data.notes || []);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
       setNotes([]);
     }
     await fetchGroups();
@@ -98,7 +101,7 @@ export default function NotesPage() {
       });
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
       setGroups([]);
     } finally {
       setLoading(false);
@@ -144,7 +147,7 @@ export default function NotesPage() {
       setNotes(deduped);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
       setNotes([]);
     } finally {
       setIsDisabled(false);
@@ -183,7 +186,7 @@ export default function NotesPage() {
       setSummarizeGroupsResponse(results.summary);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       setIsDisabled(false);
       setIsLoading(false);
@@ -213,7 +216,7 @@ export default function NotesPage() {
       console.log(dataJSON);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       setLoading(false);
       setQuizActive(true);
@@ -223,7 +226,7 @@ export default function NotesPage() {
 
   return (
     <div>
-      <div class="flex flex-row justify-center m-5 gap-3">
+      <div class="flex sm:flex-row flex-col justify-center items-center m-5 gap-3">
         {/* <AddNote
           onNoteAdded={addNoteToState}
           refreshNotes={fetchNotes}
@@ -232,18 +235,36 @@ export default function NotesPage() {
           activeComponent={activeComponent}
         /> */}
 
-        <AddGroup
-          fetchGroups={fetchGroups}
-          setActiveComponent={setActiveComponent}
-          activeComponent={activeComponent}
-        />
+        {manageGroups ? (
+          <>
+            <AddGroup
+              fetchGroups={fetchGroups}
+              setActiveComponent={setActiveComponent}
+              activeComponent={activeComponent}
+            />
 
-        <DeleteGroup
-          selectGroups={groups}
-          fetchGroups={fetchGroups}
-          setActiveComponent={setActiveComponent}
-          activeComponent={activeComponent}
-        />
+            <DeleteGroup
+              selectGroups={groups}
+              fetchGroups={fetchGroups}
+              setActiveComponent={setActiveComponent}
+              activeComponent={activeComponent}
+            />
+
+            <RenameGroup
+              selectGroups={groups}
+              fetchGroups={fetchGroups}
+              setActiveComponent={setActiveComponent}
+              activeComponent={activeComponent}
+            />
+            {!activeComponent && (
+              <Button onClick={() => setManageGroups(false)}>Cancel</Button>
+            )}
+          </>
+        ) : (
+          <>
+            <Button onClick={() => setManageGroups(true)}>Manage Groups</Button>
+          </>
+        )}
       </div>
       <div
         style={{
