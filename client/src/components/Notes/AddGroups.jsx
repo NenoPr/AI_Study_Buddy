@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Select from "react-select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -9,9 +10,10 @@ export default function AddNote({
   fetchGroups,
   setActiveComponent,
   activeComponent,
+  loading,
+  setLoading,
 }) {
   const [groupName, setGroupName] = useState("");
-  const [loading, setLoading] = useState(false);
   const [GroupAdd, setGroupAdd] = useState(false);
   const { token } = useAuth();
 
@@ -50,43 +52,48 @@ export default function AddNote({
 
   return (
     <div>
-      {GroupAdd ? (
-        <>
-          <form
-            onSubmit={addGroup}
-            name="addGroup"
-            className="flex flex-col gap-5"
-          >
-            <h3>Add Group</h3>
-            <div>Group Name</div>
-            <Input
-              type="text"
-              placeholder="Title..."
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? "Adding group..." : "Add group"}
-            </button>
-            <button
-              onClick={() => {
-                setGroupAdd(false);
-                setActiveComponent(null);
-              }}
+      {!loading ? (
+        GroupAdd ? (
+          <>
+            <form
+              onSubmit={addGroup}
+              name="addGroup"
+              className="flex flex-col gap-5"
             >
-              Cancel
-            </button>
-          </form>
-        </>
+              <h3>Add Group</h3>
+              <div>Group Name</div>
+              <Input
+                type="text"
+                placeholder="Title..."
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                required
+              />
+              <button type="submit" disabled={loading}>
+                {loading ? "Adding group..." : "Add group"}
+              </button>
+              <button
+                onClick={() => {
+                  setGroupAdd(false);
+                  setActiveComponent(null);
+                }}
+              >
+                Cancel
+              </button>
+            </form>
+          </>
+        ) : (
+          <Button
+            onClick={() => {
+              setGroupAdd(true);
+              setActiveComponent("addGroup");
+            }}
+          >
+            Create Group
+          </Button>
+        )
       ) : (
-        <button
-          onClick={() => {
-            setGroupAdd(true);
-            setActiveComponent("addGroup");
-          }}
-        >
-          Create Group
-        </button>
+        <Button disabled>Create Group</Button>
       )}
     </div>
   );

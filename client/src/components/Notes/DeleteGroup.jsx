@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Select from "react-select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function DeleteGroup({
@@ -9,8 +10,9 @@ export default function DeleteGroup({
   fetchGroups,
   setActiveComponent,
   activeComponent,
+  loading,
+  setLoading,
 }) {
-  const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState([]);
   const [groupDelete, setGroupDelete] = useState(false);
   const { token } = useAuth();
@@ -53,49 +55,54 @@ export default function DeleteGroup({
 
   return (
     <div>
-      {groupDelete ? (
-        <>
-          <form
-            onSubmit={deleteGroups}
-            name="deleteGroups"
-            className="flex flex-col gap-5"
-          >
-            <h3>Delete Groups</h3>
-            <div>Select groups to delete</div>
-            <Select
-              options={selectGroups}
-              isMulti
-              styles={{
-                control: (baseStyles, state) => ({
-                  ...baseStyles,
-                  borderColor: state.isFocused ? "grey" : "red",
-                  width: "100%",
-                  margin: "0 auto",
-                }),
-              }}
-              onChange={updateGroups}
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? "Deleting groups..." : "Delete groups"}
-            </button>
-            <button
-              onClick={() => {
-                setGroupDelete(false), setActiveComponent(null);
-              }}
+      {!loading ? (
+        groupDelete ? (
+          <>
+            <form
+              onSubmit={deleteGroups}
+              name="deleteGroups"
+              className="flex flex-col gap-5"
             >
-              Cancel
-            </button>
-          </form>
-        </>
+              <h3>Delete Groups</h3>
+              <div>Select groups to delete</div>
+              <Select
+                options={selectGroups}
+                isMulti
+                styles={{
+                  control: (baseStyles, state) => ({
+                    ...baseStyles,
+                    borderColor: state.isFocused ? "grey" : "red",
+                    width: "100%",
+                    margin: "0 auto",
+                  }),
+                }}
+                onChange={updateGroups}
+                required
+              />
+              <button type="submit" disabled={loading}>
+                {loading ? "Deleting groups..." : "Delete groups"}
+              </button>
+              <button
+                onClick={() => {
+                  setGroupDelete(false), setActiveComponent(null);
+                }}
+              >
+                Cancel
+              </button>
+            </form>
+          </>
+        ) : (
+          <Button
+            onClick={() => {
+              setGroupDelete(true);
+              setActiveComponent("groupDelete");
+            }}
+          >
+            Delete Group
+          </Button>
+        )
       ) : (
-        <button
-          onClick={() => {
-            setGroupDelete(true);
-            setActiveComponent("groupDelete");
-          }}
-        >
-          Delete Group
-        </button>
+        <Button disabled>Delete Group</Button>
       )}
     </div>
   );

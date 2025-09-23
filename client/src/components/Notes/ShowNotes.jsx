@@ -387,7 +387,7 @@ export default function ShowNotes({
                 </div>
                 {addToGroup && (
                   <>
-                    <form onSubmit={updateNoteGroups}>
+                    <form onSubmit={updateNoteGroups} className="flex flex-col gap-5">
                       <Select
                         options={selectGroups}
                         defaultValue={activeGroups}
@@ -435,7 +435,7 @@ export default function ShowNotes({
         )
       )}
       {/* Renders all selected notes  */}
-      {loading ? <div>Loading...</div> :
+      {loading ? <div className="flex self-center">Loading...</div> :
       notes &&
         !noteOpen &&
         !summarizeGroupsResponse &&
@@ -444,12 +444,11 @@ export default function ShowNotes({
           <div className="note-container">
             <div className="note-card">
               <div
-                className="note-contents"
+                className="note-contents note-add"
                 onClick={() => {
                   setAddNoteBool(true);
                 }}
               >
-                <div className="note-content note-add"></div>
               </div>
               <div
                 style={{
@@ -515,11 +514,11 @@ export default function ShowNotes({
                           : "Quiz"}
                       </button>
                       {loading ? null : (
-                        <div
+                        <button
                           className="button-delete"
                           disabled={loading}
                           onClick={() => setDeletingNoteId(item.id)}
-                        ></div>
+                        ></button>
                       )}
                     </>
                   )}
