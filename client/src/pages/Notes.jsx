@@ -22,6 +22,7 @@ export default function NotesPage() {
   const [activeComponent, setActiveComponent] = useState(null);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
+  const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [manageGroups, setManageGroups] = useState(false);
   const {
     summarizeGroupsResponse,
@@ -119,7 +120,6 @@ export default function NotesPage() {
     const controller = new AbortController();
     const groupIds = selected.map((g) => Number(g.id)).filter(Boolean);
     console.log("groupIds: ", groupIds);
-    setIsDisabled(true);
     setIsLoading(true);
 
     try {
@@ -150,7 +150,6 @@ export default function NotesPage() {
       alert(err);
       setNotes([]);
     } finally {
-      setIsDisabled(false);
       setIsLoading(false);
       setLoading(false);
       return () => controller.abort();
@@ -163,7 +162,6 @@ export default function NotesPage() {
     }
     const controller = new AbortController();
     const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
-    setIsDisabled(true);
     setIsLoading(true);
     setLoadingGroups(true);
     setLoadingNotes(false);
@@ -188,7 +186,6 @@ export default function NotesPage() {
       console.error(err);
       alert(err);
     } finally {
-      setIsDisabled(false);
       setIsLoading(false);
       setLoadingGroups(false);
       setLoadingNotes(false);
@@ -199,6 +196,7 @@ export default function NotesPage() {
 
   const createQuizGroups = async (id) => {
     setLoading(true);
+    setLoadingQuiz(true);
     // setIsEditingId(id);
     const groupIds = groupsSelected.map((g) => Number(g.id)).filter(Boolean);
     try {
@@ -219,6 +217,7 @@ export default function NotesPage() {
       alert(err);
     } finally {
       setLoading(false);
+      setLoadingQuiz(false);
       setQuizActive(true);
       // setIsEditingId("");
     }
@@ -241,6 +240,8 @@ export default function NotesPage() {
               fetchGroups={fetchGroups}
               setActiveComponent={setActiveComponent}
               activeComponent={activeComponent}
+              loading={loading}
+              setLoading={setLoading}
             />
 
             <DeleteGroup
@@ -248,6 +249,8 @@ export default function NotesPage() {
               fetchGroups={fetchGroups}
               setActiveComponent={setActiveComponent}
               activeComponent={activeComponent}
+              loading={loading}
+              setLoading={setLoading}
             />
 
             <RenameGroup
@@ -255,14 +258,20 @@ export default function NotesPage() {
               fetchGroups={fetchGroups}
               setActiveComponent={setActiveComponent}
               activeComponent={activeComponent}
+              loading={loading}
+              setLoading={setLoading}
             />
             {!activeComponent && (
-              <Button onClick={() => setManageGroups(false)}>Cancel</Button>
+              <Button disabled={loading} onClick={() => setManageGroups(false)}>
+                Cancel
+              </Button>
             )}
           </>
         ) : (
           <>
-            <Button onClick={() => setManageGroups(true)}>Manage Groups</Button>
+            <Button onClick={() => setManageGroups(true)} disabled={loading}>
+              Manage Groups
+            </Button>
           </>
         )}
       </div>
@@ -279,7 +288,7 @@ export default function NotesPage() {
           <Select
             options={groups}
             isMulti
-            isDisabled={isDisabled}
+            isDisabled={loading}
             isLoading={isLoading}
             onChange={fetchNotesGroups}
             styles={{
@@ -292,19 +301,19 @@ export default function NotesPage() {
             }}
           />
         </div>
-        <button onClick={getNotes} disabled={loading}>
+        <Button onClick={getNotes} disabled={loading}>
           {loadingNotes ? "Fetching notes..." : "Fetch notes"}
-        </button>
-        <button onClick={summarizeGroups} disabled={loading}>
+        </Button>
+        <Button onClick={summarizeGroups} disabled={loading}>
           {loadingGroups
             ? "Summarizing groups..."
             : "Summarize selected groups"}
-        </button>
-        <button disabled={loading} onClick={createQuizGroups}>
-          {loadingGroups
+        </Button>
+        <Button disabled={loading} onClick={createQuizGroups}>
+          {loadingQuiz
             ? "Creating quiz..."
             : "Create a quiz from selected groups"}
-        </button>
+        </Button>
         {/* <div  class="sm:flex sm:justify-end sm:flex-1">
           <button class="w-full sm:w-fit">Sort By:</button>
         </div> */}
