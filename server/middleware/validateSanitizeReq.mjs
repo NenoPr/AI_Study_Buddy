@@ -101,6 +101,7 @@ export const validateNote = [
     .isString()
     .withMessage("Content must be a string")
     .trim()
+    .customSanitizer((value) => value.replace(/\r\n/g, "\n")) // normalize line breaks
     .isLength({ min: 1, max: 100000 })
     .withMessage("Content must be 1–100000 characters"),
 

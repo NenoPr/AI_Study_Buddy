@@ -151,6 +151,10 @@
   border: 0.1rem solid #999;
 }
 
+.ProseMirror-trailingBreak {
+  display: none;
+}
+
 .note-open-content {
   width: 100%;
   align-self: center;
