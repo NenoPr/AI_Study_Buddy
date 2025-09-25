@@ -37,10 +37,10 @@ router.get("/", async (req, res) => {
     );
     const totalRows = parseInt(totalResult.rows[0].count, 10);
 
-    const notes = result.rows.map((note) => ({
-      ...note,
-      markdown: `${note.content}\n\n**Tags:** React, markdown`,
-    }));
+    // const notes = result.rows.map((note) => ({
+    //   ...note,
+    //   markdown: `${note.content}\n\n**Tags:** React, markdown`,
+    // }));
 
     res.json({ notes: result.rows, page, limit, totalRows });
   } catch (err) {
@@ -102,10 +102,13 @@ router.put(
   async (req, res) => {
     const userId = req.user.userId;
     const { title, content } = req.body;
-    const { id } = req.params;
+    const id  = req.params.id;
     console.log("req.body:", req.body);
-    console.log("req.params:", req.params);
+    console.log("req.params:", req.params.id);
     console.log("req.user:", req.user);
+
+    console.log(typeof id) // should be 'string' from req.params
+console.log(typeof userId) // 'number'
 
     const client = await req.pool.connect();
     try {

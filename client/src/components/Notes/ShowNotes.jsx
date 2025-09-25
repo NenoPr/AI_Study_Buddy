@@ -9,6 +9,12 @@ import Select from "react-select";
 import AddNote from "./AddNote";
 import SummarizeGroupResponse from "./SummarizeGroupResponse";
 import Quiz from "./Quiz";
+import RenderNote from "./RenderNote";
+import TurndownService from "turndown";
+import rehypeRaw from "rehype-raw";
+import { marked } from "marked";
+
+const turndownService = new TurndownService();
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function ShowNotes({
@@ -39,7 +45,7 @@ export default function ShowNotes({
   const { token } = useAuth();
   const textareaRef = useRef(null);
   const { quizActive, setQuizActive, quizJSON, setQuizJSON } = useQuizContext();
-  const { loading, setLoading, showError, setShowError } = useLoadingContext()
+  const { loading, setLoading, showError, setShowError } = useLoadingContext();
 
   useEffect(() => {
     console.log("activeGroups: ", activeGroups[0]);
@@ -66,7 +72,7 @@ export default function ShowNotes({
       });
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       setIsEditingNote(false);
       setNoteOpen(false);
@@ -93,7 +99,7 @@ export default function ShowNotes({
       setSummarizeGroupsResponse(data.summary);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       setLoading(false);
       setIsEditingId("");
@@ -116,7 +122,7 @@ export default function ShowNotes({
       console.log(dataJSON);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       setLoading(false);
       setIsEditingId("");
@@ -133,6 +139,8 @@ export default function ShowNotes({
 
   const saveNote = async (title, content, itemId) => {
     const data = { title, content };
+    console.log("tit", data.title);
+    console.log("cont", data.content);
     // console.log(itemId, title, content);
     try {
       const res = await fetch(`${API_BASE}/api/notes/note/${itemId}`, {
@@ -147,7 +155,7 @@ export default function ShowNotes({
       console.log("Response:", resData);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       setIsEditingNote(false);
       getNotes();
@@ -185,7 +193,7 @@ export default function ShowNotes({
       });
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       setAddToGroup(true);
     }
@@ -212,7 +220,7 @@ export default function ShowNotes({
       console.log("Response:", results);
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       if (!noteOpen) {
         setIsEditingId("");
@@ -269,7 +277,7 @@ export default function ShowNotes({
       });
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       alert(`Created a note under the title: ${AiTitle}`);
       setTitle("");
@@ -277,6 +285,12 @@ export default function ShowNotes({
       setCreatingNote(false);
     }
   };
+
+  function markdownWithHighlight(md) {
+    return md
+      .replace(/==(.+?)==/g, "<mark>$1</mark>") // convert highlight
+      .replace(/\+\+(.+?)\+\+/g, "<u>$1</u>"); // convert underline
+  }
 
   return (
     <div className="notes">
@@ -360,8 +374,10 @@ export default function ShowNotes({
                         onClick={getNotesGroups}
                       ></div>
                       <div
-                        className="button-edit button-note"
-                        onClick={() => setIsEditingNote(true)}
+                        className="button-edit-save button-note"
+                        onClick={() => {
+                          saveNote(title, content, isEditingId);
+                        }}
                       ></div>
                       <div
                         className="button-delete button-note"
@@ -387,7 +403,10 @@ export default function ShowNotes({
                 </div>
                 {addToGroup && (
                   <>
-                    <form onSubmit={updateNoteGroups} className="flex flex-col gap-5">
+                    <form
+                      onSubmit={updateNoteGroups}
+                      className="flex flex-col gap-5"
+                    >
                       <Select
                         options={selectGroups}
                         defaultValue={activeGroups}
@@ -418,25 +437,22 @@ export default function ShowNotes({
                     </form>
                   </>
                 )}
-                <div className="note-open-title">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {title}
-                  </ReactMarkdown>
-                </div>
-                <div style={{ border: "1px solid gray" }}></div>
-                <div className="note-open-content">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {content}
-                  </ReactMarkdown>
-                </div>
+                <RenderNote
+                  title={title}
+                  setTitle={setTitle}
+                  content={content}
+                  setContent={setContent}
+                />
               </>
             )}
           </div>
         )
       )}
       {/* Renders all selected notes  */}
-      {loading ? <div className="flex self-center">Loading...</div> :
-      notes &&
+      {loading ? (
+        <div className="flex self-center">Loading...</div>
+      ) : (
+        notes &&
         !noteOpen &&
         !summarizeGroupsResponse &&
         !addNoteBool &&
@@ -448,8 +464,7 @@ export default function ShowNotes({
                 onClick={() => {
                   setAddNoteBool(true);
                 }}
-              >
-              </div>
+              ></div>
               <div
                 style={{
                   fontSize: "1.5rem",
@@ -472,13 +487,21 @@ export default function ShowNotes({
                 >
                   <div>
                     <div className="note-title">
-                      {item.title.replace(/#/g, "")}
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw]}
+                      >
+                        {markdownWithHighlight(item.title).replace(/#/g, "")}
+                      </ReactMarkdown>
                     </div>
                     <div className="line"></div>
                   </div>
                   <div className="note-content">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {item.content}
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                    >
+                      {markdownWithHighlight(item.content)}
                     </ReactMarkdown>
                   </div>
                 </div>
@@ -526,7 +549,8 @@ export default function ShowNotes({
               </div>
             ))}
           </div>
-        )}
+        )
+      )}
     </div>
   );
 }

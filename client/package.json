@@ -13,18 +13,26 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.13",
+    "@tiptap/extension-highlight": "^3.5.3",
+    "@tiptap/extension-text-style": "^3.5.3",
+    "@tiptap/react": "^3.5.3",
+    "@tiptap/starter-kit": "^3.5.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookie-parser": "^1.4.7",
     "lucide-react": "^0.544.0",
+    "marked": "^16.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.8.1",
     "react-select": "^5.10.2",
     "react-svg": "^16.3.0",
+    "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "tiptap-markdown": "^0.9.0",
+    "turndown": "^7.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
