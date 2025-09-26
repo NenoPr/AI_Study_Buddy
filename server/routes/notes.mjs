@@ -7,8 +7,8 @@ import { body, validationResult } from "express-validator";
 import {
   validateAndSanitizeId,
   validateNote,
+  sanitizeNote,
 } from "../middleware/validateSanitizeReq.mjs";
-import sanitizeHtml from "sanitize-html";
 
 const router = express.Router();
 
@@ -59,6 +59,7 @@ router.post(
     fieldName: "groups",
     isArray: true,
   }),
+  sanitizeNote,
   async (req, res) => {
     const userId = req.user.userId;
     const title = req.body.title;
@@ -99,16 +100,17 @@ router.put(
   "/note/:id",
   validateNote,
   validateAndSanitizeId({ location: "params", type: "int", fieldName: "id" }),
+  sanitizeNote,
   async (req, res) => {
     const userId = req.user.userId;
     const { title, content } = req.body;
-    const id  = req.params.id;
+    const id = req.params.id;
     console.log("req.body:", req.body);
     console.log("req.params:", req.params.id);
     console.log("req.user:", req.user);
 
-    console.log(typeof id) // should be 'string' from req.params
-console.log(typeof userId) // 'number'
+    console.log(typeof id); // should be 'string' from req.params
+    console.log(typeof userId); // 'number'
 
     const client = await req.pool.connect();
     try {
