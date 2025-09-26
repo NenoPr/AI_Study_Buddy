@@ -1,6 +1,37 @@
 import { body, param, query, validationResult } from "express-validator";
 import sanitizeHtml from "sanitize-html";
-import { marked } from "marked";
+
+const allowedTags = [
+  "b",
+  "i",
+  "em",
+  "strong",
+  "u",
+  "p",
+  "s",
+  "br",
+  "ul",
+  "ol",
+  "li",
+  "code",
+  "pre",
+  "span",
+  "b",
+  "mark",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "blockquote",
+];
+
+const allowedAttributes = {
+  span: ["style", "data-color"], // for highlights
+  p: ["style"],
+  code: ["class"], // syntax highlighting
+};
 
 /**
  * validateAndSanitizeId
@@ -62,9 +93,9 @@ export const validateAndSanitizeId = ({
     if (type === "int") {
       checks.push(
         validator
-        .isInt({ min: 1 })
-        .withMessage("ID must be a positive integer")
-        .toInt()
+          .isInt({ min: 1 })
+          .withMessage("ID must be a positive integer")
+          .toInt()
       );
     } else if (type === "uuid") {
       checks.push(
@@ -92,7 +123,6 @@ export const validateNote = [
     .withMessage("Title is required")
     .isString()
     .withMessage("Title must be a string")
-    .trim()
     .isLength({ min: 1, max: 200 })
     .withMessage("Title must be 1–200 characters"),
 
@@ -100,7 +130,6 @@ export const validateNote = [
     .optional()
     .isString()
     .withMessage("Content must be a string")
-    .trim()
     .customSanitizer((value) => value.replace(/\r\n/g, "\n")) // normalize line breaks
     .isLength({ min: 1, max: 100000 })
     .withMessage("Content must be 1–100000 characters"),
@@ -114,3 +143,35 @@ export const validateNote = [
     next();
   },
 ];
+
+export const sanitizeNote = (req, res, next) => {
+  if (req.body.title) {
+    req.body.title = sanitizeHtml(req.body.title, {
+      allowedTags: allowedTags,
+      allowedAttributes: allowedAttributes,
+      disallowedTagsMode: "discard",
+    });
+  }
+
+  if (req.body.content) {
+    req.body.content = sanitizeHtml(req.body.content, {
+      allowedTags: allowedTags,
+      allowedAttributes: allowedAttributes,
+      allowedStyles: {
+        "*": {
+          // Only allow safe inline styles
+          "background-color": [
+            /^#[0-9a-f]{3,6}$/i,
+            /^rgb\(/,
+            /^rgba\(/,
+            /^hsl\(/,
+          ],
+          color: [/^#[0-9a-f]{3,6}$/i, /^rgb\(/, /^rgba\(/, /^hsl\(/],
+        },
+      },
+      disallowedTagsMode: "discard",
+    });
+  }
+
+  next();
+};
