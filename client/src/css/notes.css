@@ -146,9 +146,18 @@
   width: 100%;
   align-self: center;
   font-weight: bold;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
   border: 0.1rem solid #999;
+}
+
+.note-open-title div .ProseMirror p {
+  margin-top: 0;
+  padding: 1rem;
+}
+
+.ProseMirror p {
+  margin-top: 0;
 }
 
 .ProseMirror-trailingBreak {
@@ -158,13 +167,32 @@
 .note-open-content {
   width: 100%;
   align-self: center;
-  min-height: 50vh;
-  padding: 1rem;
   font-size: 1rem;
   resize: none;
   text-align: left;
-  border-radius: 0.5rem;
-  border: 0.1rem solid #999;
+  border-left: 0.1rem solid #999;
+  border-right: 0.1rem solid #999;
+  border-bottom: 0.1rem solid #999;
+}
+
+.note-open-content-buttons {
+  position: sticky;
+  top: 0; /* distance from the top of the viewport */
+  background: #fff; /* same as your editor background */
+  z-index: 100; /* keep it above the editor content */
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap; /* optional, if buttons wrap to new line */
+  border-bottom: 1px solid #ccc; /* optional, for visual separation */
+}
+
+.note-open-content div .ProseMirror {
+  padding: 1rem;
+}
+
+.note-open-content .tiptap {
+  min-height: 50vh;
 }
 
 .note-open-buttons {
@@ -227,6 +255,7 @@
   height: 90%;
   overflow: hidden;
   min-width: 0;
+  text-align: left;
 }
 
 p {
@@ -246,11 +275,10 @@ p {
   background-color: rgb(255, 255, 255);
   color: black;
 
-  
-  min-width: 0;              /* ensures shrinking works */
-  overflow: hidden;          
-  text-overflow: ellipsis;   /* adds "..." when clipped */
-  white-space: nowrap;       /* or remove if you want wrapping */
+  min-width: 0; /* ensures shrinking works */
+  overflow: hidden;
+  text-overflow: ellipsis; /* adds "..." when clipped */
+  white-space: nowrap; /* or remove if you want wrapping */
 }
 
 .note-content {
@@ -278,15 +306,15 @@ p {
 }
 
 .button-summarize-note {
-  padding: .25rem;
-  padding-left: .5rem;
-  padding-right: .5rem;
+  padding: 0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .button-quiz-note {
-  padding: .25rem;
-  padding-left: .5rem;
-  padding-right: .5rem;
+  padding: 0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .button-groups {
@@ -377,4 +405,33 @@ p {
     width: 3.5rem;
     height: 3.5rem;
   }
+}
+
+code {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #2d2d2d;
+  color: #f8f8f2;
+  font-family: monospace;
+}
+
+.note-open-content ul,
+.note-open-title ul {
+  list-style-type: disc; /* bullet list */
+  padding-left: 1.5rem; /* indent bullets */
+  margin: 0.5rem 0;
+}
+
+.note-open-content ol,
+.note-open-title ol {
+  list-style-type: decimal; /* numbered list */
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.note-open-content li,
+.note-open-title li {
+  margin: 0.25rem 0;
 }
