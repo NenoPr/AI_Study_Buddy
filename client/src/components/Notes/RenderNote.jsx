@@ -1,115 +1,145 @@
 import React from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Mark } from "@tiptap/core";
-import { marked } from "marked";
-import turndownService from "./utils/turndown";
-import { Highlight, Underline } from "./utils/mark";
+import Underline from "@tiptap/extension-underline";
+import Highlight from "@tiptap/extension-highlight";
+import { Node, Extension, Mark } from "@tiptap/core";
+import { Plugin } from "prosemirror-state";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
 
-// Create a new tokenizer
-const customTokenizer = {
-  extensions: [
-    {
-      name: "highlight",
-      level: "inline", // inline syntax
-      start(src) {
-        return src.indexOf("=="); // quick check for speed
-      },
-      tokenizer(src, tokens) {
-        const rule = /^==(.+?)==/; // match highlight
-        const match = rule.exec(src);
-        if (match) {
-          return {
-            type: "highlight",
-            raw: match[0],
-            text: match[1],
-          };
-        }
-      },
-      renderer(token) {
-        return `<mark>${token.text}</mark>`;
-      },
-    },
-    {
-      name: "underline",
-      level: "inline",
-      start(src) {
-        return src.indexOf("++");
-      },
-      tokenizer(src, tokens) {
-        const rule = /^\+\+(.+?)\+\+/;
-        const match = rule.exec(src);
-        if (match) {
-          return {
-            type: "underline",
-            raw: match[0],
-            text: match[1],
-          };
-        }
-      },
-      renderer(token) {
-        return `<u>${token.text}</u>`;
-      },
-    },
-  ],
-};
+import History from "@tiptap/extension-history";
+import Code from "@tiptap/extension-code";
 
-// Register tokenizer with marked
-marked.use(customTokenizer);
+const PasteSplitParagraph = Extension.create({
+  name: "pasteSplitParagraph",
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          handlePaste(view, event) {
+            const text = event.clipboardData?.getData("text/plain");
+
+            if (text) {
+              const paragraphs = text.split(/n{1,2}/g);
+              const nodes = paragraphs.map((p) =>
+                view.state.schema.nodes.paragraph.create(
+                  {},
+                  view.state.schema.text(p)
+                )
+              );
+
+              const fragment = view.state.schema.nodes.doc.create({}, nodes);
+              const tr = view.state.tr.replaceSelectionWith(fragment);
+              view.dispatch(tr);
+              return true;
+            }
+
+            return false;
+          },
+        },
+      }),
+    ];
+  },
+});
+
+const Video = Node.create({
+  name: "video",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: true,
+  addAttributes() {
+    return {
+      src: { default: null },
+      width: { default: "560" },
+      height: { default: "315" },
+      frameborder: { default: "0" },
+      allow: {
+        default:
+          "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+      },
+      allowfullscreen: { default: true },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "iframe[src]" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["iframe", HTMLAttributes];
+  },
+});
 
 export default function RenderNote({ title, setTitle, content, setContent }) {
   const editorTitle = useEditor({
-    extensions: [StarterKit, Highlight, Underline],
-    content: marked(title), // Markdown → HTML
+    extensions: [
+      StarterKit.configure({
+        history: false, // disable the built-in one
+      }),
+      Underline,
+      Highlight,
+    ],
+    content: title,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      const md = turndownService.turndown(html);
-      setTitle(md);
+      setTitle(html);
     },
   });
 
   const editorContent = useEditor({
-    extensions: [StarterKit, Highlight, Underline],
-    content: marked(content), // Markdown → HTML
+    extensions: [
+      StarterKit.configure({
+        history: false, // disable the built-in one
+      }),
+      Underline,
+      Highlight,
+      PasteSplitParagraph,
+      Table.configure({
+        resizable: true, // optional: allows column resizing
+      }),
+      TableRow,
+      TableCell,
+      TableHeader, // <-- this enables <th>
+      Link.configure({
+        HTMLAttributes: {
+          rel: "noopener noreferrer",
+          target: "_blank", // open in new tab
+        },
+        autolink: true, // automatically create links from URLs
+        linkOnPaste: true, // automatically convert URLs pasted
+      }),
+      Image.configure({
+        inline: false, // block-level image
+        HTMLAttributes: {
+          class: "editor-image",
+          style: "max-width: 100%; height: auto;",
+        },
+      }),
+      Video,
+    ],
+    content: content,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      const md = turndownService.turndown(html);
-      setContent(md);
+      setContent(html);
     },
   });
 
   return (
     <div style={{ padding: "1rem" }}>
       {/* Toolbar */}
-      <div style={{ marginBottom: "0.5rem" }}>
+      <div
+        style={{ marginBottom: "0.5rem" }}
+        className="note-open-content-buttons"
+      >
         <button
           onClick={() => {
-            editorTitle.chain().focus().toggleHighlight().run();
-            editorContent.chain().focus().toggleHighlight().run();
-          }}
-        >
-          Bold
-        </button>
-        <button
-          onClick={() => {
-            editorTitle.chain().focus().toggleHighlight().run();
-            editorContent.chain().focus().toggleHighlight().run();
-          }}
-        >
-          Italic
-        </button>
-        <button
-          onClick={() => {
-            editorTitle.chain().focus().toggleHighlight().run();
-            editorContent.chain().focus().toggleHighlight().run();
-          }}
-        >
-          Strike
-        </button>
-        <button
-          onClick={() => {
-            editorTitle.chain().focus().toggleHighlight().run();
-            editorContent.chain().focus().toggleHighlight().run();
+            editorTitle.chain().focus().toggleUnderline().run();
+            editorContent.chain().focus().toggleUnderline().run();
           }}
         >
           Underline
@@ -122,19 +152,250 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         >
           Highlight
         </button>
+        {/* Marks */}
         <button
           onClick={() => {
-            // Get rendered HTML from TipTap
-            const htmlT = editorTitle.getHTML();
-            const htmlC = editorContent.getHTML();
-            // Convert back to Markdown
-            const mdT = serializeToMarkdown(htmlT);
-            const mdC = serializeToMarkdown(htmlC);
-            console.log("Markdown output:", mdT, mdC);
-            alert(mdT, mdC);
+            editorTitle.chain().focus().toggleBold().run();
+            editorContent.chain().focus().toggleBold().run();
           }}
         >
-          Export Markdown
+          Bold
+        </button>
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().toggleItalic().run();
+            editorContent.chain().focus().toggleItalic().run();
+          }}
+        >
+          Italic
+        </button>
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().toggleStrike().run();
+            editorContent.chain().focus().toggleStrike().run();
+          }}
+        >
+          Strike
+        </button>
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().toggleCode().run();
+            editorContent
+              .chain()
+              .focus()
+              .toggleCode("code", { color: "lightblue" })
+              .run();
+          }}
+        >
+          Code
+        </button>
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().unsetAllMarks().run();
+            editorContent.chain().focus().unsetAllMarks().run();
+          }}
+        >
+          Clear Marks
+        </button>
+
+        {/* Nodes */}
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().setParagraph().run();
+            editorContent.chain().focus().setParagraph().run();
+          }}
+        >
+          Paragraph
+        </button>
+        <button
+          onClick={() => {
+            editorContent
+              .chain()
+              .focus()
+              .setNode("heading", { level: 1 })
+              .run();
+          }}
+        >
+          H1
+        </button>
+        <button
+          onClick={() => {
+            editorContent
+              .chain()
+              .focus()
+              .setNode("heading", { level: 2 })
+              .run();
+          }}
+        >
+          H2
+        </button>
+        <button
+          onClick={() => {
+            editorContent
+              .chain()
+              .focus()
+              .setNode("heading", { level: 3 })
+              .run();
+          }}
+        >
+          H3
+        </button>
+        <button
+          onClick={() => {
+            editorContent
+              .chain()
+              .focus()
+              .setNode("heading", { level: 4 })
+              .run();
+          }}
+        >
+          H4
+        </button>
+        <button
+          onClick={() => {
+            editorContent
+              .chain()
+              .focus()
+              .setNode("heading", { level: 5 })
+              .run();
+          }}
+        >
+          H5
+        </button>
+        <button
+          onClick={() => {
+            editorContent
+              .chain()
+              .focus()
+              .setNode("heading", { level: 6 })
+              .run();
+          }}
+        >
+          H6
+        </button>
+        <button
+          onClick={() => {
+            editorContent.chain().focus().toggleBulletList().run();
+          }}
+        >
+          Bullet List
+        </button>
+        <button
+          onClick={() => {
+            editorContent.chain().focus().toggleOrderedList().run();
+          }}
+        >
+          Ordered List
+        </button>
+        <button
+          onClick={() => {
+            editorContent.chain().focus().toggleCodeBlock().run();
+          }}
+        >
+          Code Block
+        </button>
+        {/* <button
+          onClick={() => {
+            editorContent.chain().focus().toggleBlockquote().run();
+          }}
+        >
+          Blockquote
+        </button> */}
+        <button
+          onClick={() => {
+            editorContent.chain().focus().setHorizontalRule().run();
+          }}
+        >
+          Horizontal Rule
+        </button>
+        <button
+          onClick={() => {
+            editorContent.chain().focus().setHardBreak().run();
+          }}
+        >
+          Hard Break
+        </button>
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().clearNodes().run();
+            editorContent.chain().focus().clearNodes().run();
+          }}
+        >
+          Clear Nodes
+        </button>
+        {/* Links */}
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            const url = prompt("Enter the URL");
+            if (url) {
+              editorContent.chain().focus().setLink({ href: url }).run();
+            }
+          }}
+        >
+          Link
+        </button>
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            editorContent.chain().focus().unsetLink().run();
+          }}
+        >
+          Remove Link
+        </button>
+
+        {/* Images */}
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            const url = prompt("Enter image URL");
+            if (url) {
+              editorContent.chain().focus().setImage({ src: url }).run();
+            }
+          }}
+        >
+          Image
+        </button>
+
+        {/* Video */}
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            // check if 'video' node exists in schema
+            if (!editorContent.schema.nodes.video) {
+              alert("Video node is not registered in the editor!");
+              return;
+            }
+
+            const url = prompt("Enter YouTube or video URL");
+            if (url) {
+              editorContent
+                .chain()
+                .focus()
+                .setNode("video", { src: url })
+                .run();
+            }
+          }}
+        >
+          Video
+        </button>
+
+        {/* History */}
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().undo().run();
+            editorContent.chain().focus().undo().run();
+          }}
+        >
+          Undo
+        </button>
+        <button
+          onClick={() => {
+            editorTitle.chain().focus().redo().run();
+            editorContent.chain().focus().redo().run();
+          }}
+        >
+          Redo
         </button>
       </div>
 

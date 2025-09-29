@@ -3,10 +3,13 @@ import { useAuth } from "../context/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Select from "react-select";
+import RenderNote from "@/components/Notes/RenderNote";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+import DOMPurify from "dompurify";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -99,10 +102,10 @@ export default function AIHome() {
       });
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
       setGroups([]);
     } finally {
-      window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }
   };
 
@@ -146,7 +149,7 @@ export default function AIHome() {
       });
     } catch (err) {
       console.error(err);
-      alert(err)
+      alert(err);
     } finally {
       alert(`Created a note under the title: ${AiTitle}`);
       setTitle("");
@@ -214,10 +217,15 @@ export default function AIHome() {
       <div className="notes">
         {answer && (
           <div class="summary">
-            <div class="">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <div
+              class="summary-answer"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(answer),
+              }}
+            >
+              {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {answer}
-              </ReactMarkdown>
+              </ReactMarkdown> */}
             </div>
             <br />
             {isCreatingNote ? null : (
@@ -254,7 +262,7 @@ export default function AIHome() {
                   <label>
                     Groups:
                     <Select
-                      menuPlacement="top" 
+                      menuPlacement="top"
                       options={groups}
                       isMulti
                       isDisabled={selectIsDisabled}

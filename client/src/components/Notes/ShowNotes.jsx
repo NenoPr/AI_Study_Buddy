@@ -11,6 +11,7 @@ import SummarizeGroupResponse from "./SummarizeGroupResponse";
 import Quiz from "./Quiz";
 import RenderNote from "./RenderNote";
 import TurndownService from "turndown";
+import DOMPurify from "dompurify";
 import rehypeRaw from "rehype-raw";
 import { marked } from "marked";
 
@@ -286,12 +287,6 @@ export default function ShowNotes({
     }
   };
 
-  function markdownWithHighlight(md) {
-    return md
-      .replace(/==(.+?)==/g, "<mark>$1</mark>") // convert highlight
-      .replace(/\+\+(.+?)\+\+/g, "<u>$1</u>"); // convert underline
-  }
-
   return (
     <div className="notes">
       {addNoteBool ? (
@@ -486,24 +481,20 @@ export default function ShowNotes({
                   }}
                 >
                   <div>
-                    <div className="note-title">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw]}
-                      >
-                        {markdownWithHighlight(item.title).replace(/#/g, "")}
-                      </ReactMarkdown>
-                    </div>
+                    <div
+                      className="note-title"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(item.title),
+                      }}
+                    ></div>
                     <div className="line"></div>
                   </div>
-                  <div className="note-content">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeRaw]}
-                    >
-                      {markdownWithHighlight(item.content)}
-                    </ReactMarkdown>
-                  </div>
+                  <div
+                    className="note-content"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(item.content),
+                    }}
+                  ></div>
                 </div>
                 <div className="note-buttons-container">
                   {deletingNoteId == item.id ? (
