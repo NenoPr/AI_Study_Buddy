@@ -211,11 +211,9 @@ export default function AIHome() {
             <div
               class="summary-answer"
               dangerouslySetInnerHTML={{
-<<<<<<< HEAD
-                __html: DOMPurify.sanitize(answer),
-=======
-                __html: DOMPurify.sanitize(decodeHtml(answer)),
->>>>>>> main
+                __html: DOMPurify.sanitize(decodeHtml(answer), {
+                  USE_PROFILES: { html: true }
+                }),
               }}
             >
               {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>
