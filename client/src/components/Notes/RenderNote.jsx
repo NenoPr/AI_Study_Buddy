@@ -328,7 +328,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
           <>
             <button
               onClick={() => {
-                if (!editorContent) return;
                 const url = prompt("Enter the URL");
                 if (url) {
                   editorContent.chain().focus().setLink({ href: url }).run();
@@ -339,7 +338,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
             </button>
             <button
               onClick={() => {
-                if (!editorContent) return;
                 editorContent.chain().focus().unsetLink().run();
               }}
             >
@@ -348,7 +346,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
 
             <button
               onClick={() => {
-                if (!editorContent) return;
                 const url = prompt("Enter image URL");
                 if (url) {
                   editorContent.chain().focus().setImage({ src: url }).run();
@@ -360,7 +357,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
 
             <button
               onClick={() => {
-                if (!editorContent) return;
                 // check if 'video' node exists in schema
                 if (!editorContent.schema.nodes.video) {
                   alert("Video node is not registered in the editor!");
