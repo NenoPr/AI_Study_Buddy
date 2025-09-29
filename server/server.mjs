@@ -26,19 +26,19 @@ if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET must be set in environment variables");
 }
 
+const allowedOrigins = [
+  "https://ai-study-buddy-silk.vercel.app",
+  "https://my-other-origin.vercel.app",
+  "http://localhost:5173",
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // server-to-server
-    if (origin.endsWith("-nenoprs-projects.vercel.app")) {
-      callback(null, origin); // ✅ echo the request origin
-    } else if (origin.endsWith("ai-study-buddy-silk.vercel.app")) {
-      callback(null, origin); // ✅ echo the request origin
-    } else if (origin.endsWith("localhost:5173")) {
-      callback(null, origin); // ✅ echo the request origin
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    if (!origin) return callback(null, true); // server-to-server or Postman
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
