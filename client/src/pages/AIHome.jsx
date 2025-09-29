@@ -169,23 +169,14 @@ export default function AIHome() {
     }
   }
 
+  function decodeHtml(html) {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
   return (
     <div class="flex flex-col items-center">
-      {/* <br />
-       <button onClick={handleSummarize} disabled={loadingSummarize}>
-        {loadingSummarize ? "Summarizing..." : "Summarize all Notes"}
-      </button>
-      <div style={{ margin: "1rem" }}></div>
-      {summary && (
-        <>
-          <h2 style={{ alignText: "center" }}>Summary:</h2>
-          <div style={{ marginTop: "1rem", whiteSpace: "pre-wrap" }}>
-            {summary}
-          </div>
-        </>
-      )} 
-      <br /> */}
-
       <form
         onSubmit={handleQuestion}
         class="flex flex-col gap-2 h-fit items-center mt-5 w-full"
@@ -220,7 +211,11 @@ export default function AIHome() {
             <div
               class="summary-answer"
               dangerouslySetInnerHTML={{
+<<<<<<< HEAD
                 __html: DOMPurify.sanitize(answer),
+=======
+                __html: DOMPurify.sanitize(decodeHtml(answer)),
+>>>>>>> main
               }}
             >
               {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>
