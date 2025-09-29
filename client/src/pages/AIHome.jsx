@@ -30,16 +30,6 @@ export default function AIHome() {
 
   const { token } = useAuth();
 
-  const [sanitizedHtml, setSanitizedHtml] = useState("");
-
-  useEffect(() => {
-    if (!answer) return;
-    // decode HTML entities -> sanitize -> set state
-    const decoded = he.decode(answer);
-    const clean = DOMPurify.sanitize(decoded, { USE_PROFILES: { html: true } });
-    setSanitizedHtml(clean);
-  }, [answer]);
-
   // ✅ This function is async
   const handleSummarize = async () => {
     setLoadingSummarize(true);
@@ -212,10 +202,12 @@ export default function AIHome() {
       </form>
       <div className="notes">
         {answer && (
-          <div className="summary">
+          <div class="summary">
             <div
-              className="summary-answer"
-              dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+              class="summary-answer"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(he.decode(answer), { USE_PROFILES: { html: true } }),
+              }}
             >
               {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {answer}
