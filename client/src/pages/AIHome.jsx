@@ -212,7 +212,7 @@ export default function AIHome() {
               class="summary-answer"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(decodeHtml(answer), {
-                  USE_PROFILES: { html: true },
+                  USE_PROFILES: { html: true }
                 }),
               }}
             >
