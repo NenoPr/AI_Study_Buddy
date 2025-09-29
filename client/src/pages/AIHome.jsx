@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import DOMPurify from "dompurify";
+import he from "he";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -169,12 +170,6 @@ export default function AIHome() {
     }
   }
 
-  function decodeHtml(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
-
   return (
     <div class="flex flex-col items-center">
       <form
@@ -211,7 +206,7 @@ export default function AIHome() {
             <div
               class="summary-answer"
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(decodeHtml(decodeHtml(answer)), { USE_PROFILES: { html: true } }),
+                __html: DOMPurify.sanitize(he.decode(answer), { USE_PROFILES: { html: true } }),
               }}
             >
               {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>
