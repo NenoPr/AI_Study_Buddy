@@ -287,12 +287,6 @@ export default function ShowNotes({
     }
   };
 
-  function markdownWithHighlight(md) {
-    return md
-      .replace(/==(.+?)==/g, "<mark>$1</mark>") // convert highlight
-      .replace(/\+\+(.+?)\+\+/g, "<u>$1</u>"); // convert underline
-  }
-
   return (
     <div className="notes">
       {addNoteBool ? (

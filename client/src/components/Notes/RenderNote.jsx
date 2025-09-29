@@ -3,9 +3,15 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
-import { Extension } from "@tiptap/core";
+import { Node, Extension, Mark } from "@tiptap/core";
 import { Plugin } from "prosemirror-state";
-import { Mark } from "@tiptap/core";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+
 import History from "@tiptap/extension-history";
 import Code from "@tiptap/extension-code";
 
@@ -42,60 +48,32 @@ const PasteSplitParagraph = Extension.create({
   },
 });
 
-// function splitCodeByNewline(editor) {
-//   const { state, view } = editor;
-//   const { tr, selection } = state;
-//   const { from, to } = selection;
-
-//   // Get all nodes in selection
-//   let nodes = [];
-//   state.doc.nodesBetween(from, to, (node, pos) => {
-//     if (node.type.name === "codeBlock") {
-//       nodes.push({ node, pos });
-//     }
-//   });
-
-//   nodes.forEach(({ node, pos }) => {
-//     const lines = node.textContent.split("\n"); // split by newline
-//     if (lines.length > 1) {
-//       // Replace original code block with separate paragraphs
-//       const frag = lines.map((line) =>
-//         state.schema.nodes.paragraph.create({}, state.schema.text(line))
-//       );
-//       tr.replaceWith(pos, pos + node.nodeSize, frag);
-//     }
-//   });
-
-//   editor.view.dispatch(tr);
-// }
-
-// function mergeListItemsToParagraph(editor) {
-//   const { state, view } = editor;
-//   const { tr, selection } = state;
-//   const { $from, $to } = selection;
-
-//   // Collect all selected list items
-//   const items = [];
-//   state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
-//     if (node.type.name === 'listItem') {
-//       items.push(node);
-//     }
-//   });
-
-//   if (items.length > 0) {
-//     // Merge all list items text into a single paragraph
-//     const mergedText = items.map((item) => item.textContent).join('\n');
-//     const paragraph = state.schema.nodes.paragraph.create(
-//       {},
-//       state.schema.text(mergedText)
-//     );
-
-//     // Replace the whole list selection with the single paragraph
-//     tr.deleteRange($from.start(), $to.end());
-//     tr.insert($from.start(), paragraph);
-//     editor.view.dispatch(tr);
-//   }
-// }
+const Video = Node.create({
+  name: "video",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: true,
+  addAttributes() {
+    return {
+      src: { default: null },
+      width: { default: "560" },
+      height: { default: "315" },
+      frameborder: { default: "0" },
+      allow: {
+        default:
+          "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+      },
+      allowfullscreen: { default: true },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "iframe[src]" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["iframe", HTMLAttributes];
+  },
+});
 
 export default function RenderNote({ title, setTitle, content, setContent }) {
   const editorTitle = useEditor({
@@ -121,6 +99,28 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
       Underline,
       Highlight,
       PasteSplitParagraph,
+      Table.configure({
+        resizable: true, // optional: allows column resizing
+      }),
+      TableRow,
+      TableCell,
+      TableHeader, // <-- this enables <th>
+      Link.configure({
+        HTMLAttributes: {
+          rel: "noopener noreferrer",
+          target: "_blank", // open in new tab
+        },
+        autolink: true, // automatically create links from URLs
+        linkOnPaste: true, // automatically convert URLs pasted
+      }),
+      Image.configure({
+        inline: false, // block-level image
+        HTMLAttributes: {
+          class: "editor-image",
+          style: "max-width: 100%; height: auto;",
+        },
+      }),
+      Video,
     ],
     content: content,
     onUpdate: ({ editor }) => {
@@ -322,6 +322,62 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
           }}
         >
           Clear Nodes
+        </button>
+        {/* Links */}
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            const url = prompt("Enter the URL");
+            if (url) {
+              editorContent.chain().focus().setLink({ href: url }).run();
+            }
+          }}
+        >
+          Link
+        </button>
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            editorContent.chain().focus().unsetLink().run();
+          }}
+        >
+          Remove Link
+        </button>
+
+        {/* Images */}
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            const url = prompt("Enter image URL");
+            if (url) {
+              editorContent.chain().focus().setImage({ src: url }).run();
+            }
+          }}
+        >
+          Image
+        </button>
+
+        {/* Video */}
+        <button
+          onClick={() => {
+            if (!editorContent) return;
+            // check if 'video' node exists in schema
+            if (!editorContent.schema.nodes.video) {
+              alert("Video node is not registered in the editor!");
+              return;
+            }
+
+            const url = prompt("Enter YouTube or video URL");
+            if (url) {
+              editorContent
+                .chain()
+                .focus()
+                .setNode("video", { src: url })
+                .run();
+            }
+          }}
+        >
+          Video
         </button>
 
         {/* History */}

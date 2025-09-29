@@ -1,37 +1,9 @@
 import { body, param, query, validationResult } from "express-validator";
-import sanitizeHtml from "sanitize-html";
+import createDOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
 
-const allowedTags = [
-  "b",
-  "i",
-  "em",
-  "strong",
-  "u",
-  "p",
-  "s",
-  "br",
-  "ul",
-  "ol",
-  "li",
-  "code",
-  "pre",
-  "span",
-  "b",
-  "mark",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "blockquote",
-];
-
-const allowedAttributes = {
-  span: ["style", "data-color"], // for highlights
-  p: ["style"],
-  code: ["class"], // syntax highlighting
-};
+const window = new JSDOM("").window;
+const DOMPurify = createDOMPurify(window);
 
 /**
  * validateAndSanitizeId
@@ -67,8 +39,8 @@ export const validateAndSanitizeId = ({
     checks.push(
       validator
         .optional({ checkFalsy: true })
-        .isArray({ min: 1 })
-        .withMessage(`${fieldName} must be a non-empty array`)
+        .isArray()
+        .withMessage(`${fieldName} must be an array`)
     );
 
     if (type === "int") {
@@ -144,34 +116,22 @@ export const validateNote = [
   },
 ];
 
+// 🚀 Safe sanitizer with DOMPurify (allows all CSS & HTML, strips unsafe)
 export const sanitizeNote = (req, res, next) => {
+  const purifyOptions = {
+    ALLOW_ARBITRARY_ATTRIBUTES: true,
+    SAFE_FOR_TEMPLATES: true,
+    RETURN_TRUSTED_TYPE: false,
+  };
+
   if (req.body.title) {
-    req.body.title = sanitizeHtml(req.body.title, {
-      allowedTags: allowedTags,
-      allowedAttributes: allowedAttributes,
-      disallowedTagsMode: "discard",
-    });
+    req.body.title = DOMPurify.sanitize(req.body.title, purifyOptions);
   }
 
   if (req.body.content) {
-    req.body.content = sanitizeHtml(req.body.content, {
-      allowedTags: allowedTags,
-      allowedAttributes: allowedAttributes,
-      allowedStyles: {
-        "*": {
-          // Only allow safe inline styles
-          "background-color": [
-            /^#[0-9a-f]{3,6}$/i,
-            /^rgb\(/,
-            /^rgba\(/,
-            /^hsl\(/,
-          ],
-          color: [/^#[0-9a-f]{3,6}$/i, /^rgb\(/, /^rgba\(/, /^hsl\(/],
-        },
-      },
-      disallowedTagsMode: "discard",
-    });
+    req.body.content = DOMPurify.sanitize(req.body.content, purifyOptions);
   }
 
   next();
 };
+
