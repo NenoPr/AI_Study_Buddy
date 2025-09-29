@@ -324,59 +324,57 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
           Clear Nodes
         </button>
         {/* Links */}
-        {editorContent && (
-          <>
-            <button
-              onClick={() => {
-                const url = prompt("Enter the URL");
-                if (url) {
-                  editorContent.chain().focus().setLink({ href: url }).run();
-                }
-              }}
-            >
-              Link
-            </button>
-            <button
-              onClick={() => {
-                editorContent.chain().focus().unsetLink().run();
-              }}
-            >
-              Remove Link
-            </button>
+        <>
+          <button
+            onClick={() => {
+              const url = prompt("Enter the URL");
+              if (url) {
+                editorContent.chain().focus().setLink({ href: url }).run();
+              }
+            }}
+          >
+            Link
+          </button>
+          <button
+            onClick={() => {
+              editorContent.chain().focus().unsetLink().run();
+            }}
+          >
+            Remove Link
+          </button>
 
-            <button
-              onClick={() => {
-                const url = prompt("Enter image URL");
-                if (url) {
-                  editorContent.chain().focus().setImage({ src: url }).run();
-                }
-              }}
-            >
-              Image
-            </button>
+          <button
+            onClick={() => {
+              const url = prompt("Enter image URL");
+              if (url) {
+                editorContent.chain().focus().setImage({ src: url }).run();
+              }
+            }}
+          >
+            Image
+          </button>
 
-            <button
-              onClick={() => {
-                // check if 'video' node exists in schema
-                if (!editorContent.schema.nodes.video) {
-                  alert("Video node is not registered in the editor!");
-                  return;
-                }
+          <button
+            onClick={() => {
+              // check if 'video' node exists in schema
+              if (!editorContent.schema.nodes.video) {
+                alert("Video node is not registered in the editor!");
+                return;
+              }
 
-                const url = prompt("Enter YouTube or video URL");
-                if (url) {
-                  editorContent
-                    .chain()
-                    .focus()
-                    .setNode("video", { src: url })
-                    .run();
-                }
-              }}
-            >
-              Video
-            </button>
-          </>
-        )}
+              const url = prompt("Enter YouTube or video URL");
+              if (url) {
+                editorContent
+                  .chain()
+                  .focus()
+                  .setNode("video", { src: url })
+                  .run();
+              }
+            }}
+          >
+            Video
+          </button>
+        </>
 
         {/* History */}
         <button

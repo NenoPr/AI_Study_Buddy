@@ -212,9 +212,9 @@ export default function AIHome() {
       </form>
       <div className="notes">
         {answer && (
-          <div class="summary">
+          <div className="summary">
             <div
-              class="summary-answer"
+              className="summary-answer"
               dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
             >
               {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>
