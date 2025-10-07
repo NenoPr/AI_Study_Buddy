@@ -1,5 +1,6 @@
-import React from "react";
+import { React, useState, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
@@ -14,6 +15,11 @@ import Image from "@tiptap/extension-image";
 
 import History from "@tiptap/extension-history";
 import Code from "@tiptap/extension-code";
+
+import DOMPurify from "dompurify";
+import he from "he";
+
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const PasteSplitParagraph = Extension.create({
   name: "pasteSplitParagraph",
@@ -76,6 +82,56 @@ const Video = Node.create({
 });
 
 export default function RenderNote({ title, setTitle, content, setContent }) {
+  const [question, setQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const askAI = async (selectedText, from, to) => {
+    // const selectedText = editor.state.doc.textBetween(
+    //   editor.state.selection.from,
+    //   editor.state.selection.to,
+    //   " "
+    // );
+
+    // const fullQuestion =
+    //   question.trim() || `Explain this: ${selectedText || "the topic"}`;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: selectedText }),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (data.answer) {
+        const decoded = he.decode(data.answer);
+        let clean = DOMPurify.sanitize(decoded, {
+          USE_PROFILES: { html: true },
+        });
+        // Remove empty <li> elements
+        const temp = document.createElement("div");
+        temp.innerHTML = clean;
+        temp.querySelectorAll("li").forEach((li) => {
+          if (!li.textContent.trim()) li.remove();
+        });
+        clean = temp.innerHTML;
+        // insert AI answer right below the selection
+        editorContent
+          .chain()
+          .focus()
+          .insertContentAt({ from: to + 1, to: to + 1 }, clean)
+          .run();
+      }
+    } catch (err) {
+      console.error("AI error:", err);
+    } finally {
+      setQuestion("");
+      setLoading(false);
+    }
+  };
+
   const editorTitle = useEditor({
     extensions: [
       StarterKit.configure({
@@ -122,6 +178,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
       }),
       Video,
     ],
+    shouldRerenderOnTransaction: true,
     content: content,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
@@ -393,7 +450,36 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         >
           Redo
         </button>
+        <button
+          onClick={askAI}
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          {loading ? "Thinking..." : "Ask"}
+        </button>
       </div>
+
+      <BubbleMenu
+        editor={editorContent}
+        options={{ placement: "top", offset: 6 }}
+      >
+        <div style={{ display: "flex", gap: "0.5rem", padding: "0.25rem" }}>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, from, to);
+            }}
+          >
+            Ask AI
+          </button>
+        </div>
+      </BubbleMenu>
 
       {/* Editor */}
       <div className="note-open-title">
