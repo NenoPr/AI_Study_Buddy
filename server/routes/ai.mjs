@@ -48,7 +48,7 @@ router.post(
           {
             role: "system",
             content:
-              "You are a helpful study assistant. Answer the students questions. Use the .md format to format them, make them look easy to understand and pleasing to see.",
+              "You are a helpful study assistant. Answer the students questions. Use the HTML format so it can be displayed in a browser, don't add any extra elements like header or footer, only use the HTML format to put the answer in. Make them look easy to understand and pleasing to see. Use every possible element you can to style the HTML. Don't use classes if you're gonna style the elements, only use inline style attribute.",
           },
           { role: "user", content: `${question}` },
         ],
@@ -112,7 +112,7 @@ router.post(
           {
             role: "system",
             content:
-              "You are a helpful study assistant. Answer the user's questions. Use the .md format to format them, make them look easy to understand and pleasing to see.",
+              "You are a helpful study assistant. Answer the students questions. Use the HTML format so it can be displayed in a browser, don't add any extra elements like header or footer, only use the HTML format to put the answer in. Make them look easy to understand and pleasing to see. Use every possible element you can to style the HTML. Don't use classes if you're gonna style the elements, only use inline style attribute.",
           },
           {
             role: "user",
@@ -160,7 +160,7 @@ router.get("/summarize", async (req, res) => {
         {
           role: "system",
           content:
-            "You are a helpful study assistant. Summarize the user's notes concisely.",
+            "You are a helpful study assistant. Summarize the user's notes concisely. Use the HTML format so it can be displayed in a browser, don't add any extra elements like header or footer, only use the HTML format to put the answer in. Make them look easy to understand and pleasing to see. Use every possible element you can to style the HTML. Don't use classes if you're gonna style the elements, only use inline style attribute.",
         },
         { role: "user", content: `Here are my notes: \n${notesText}\n\n ` },
       ],
@@ -212,7 +212,7 @@ router.get(
           {
             role: "system",
             content:
-              "You are a helpful study assistant. Summarize the user's notes concisely. Use the .md format to format them, make them look easy to understand and pleasing to see.",
+              "You are a helpful study assistant. Summarize the user's notes concisely. Use the HTML format so it can be displayed in a browser, don't add any extra elements like header or footer, only use the HTML format to put the answer in. Make them look easy to understand and pleasing to see. Use every possible element you can to style the HTML. Don't use classes if you're gonna style the elements, only use inline style attribute.",
           },
           { role: "user", content: `Here are my notes: \n${notesText}\n\n ` },
         ],
@@ -262,9 +262,10 @@ router.post(
             .json({ error: "No notes found with provided groups..." });
 
         for (const note_id of allGroupNotes) {
-          const res = await client.query("SELECT * FROM notes WHERE id=$1 AND user_id=$2", [
-            note_id.note_id, userId
-          ]);
+          const res = await client.query(
+            "SELECT * FROM notes WHERE id=$1 AND user_id=$2",
+            [note_id.note_id, userId]
+          );
           console.log("note_id: ", note_id.note_id);
           result.push(res.rows.flat());
         }
@@ -291,7 +292,7 @@ router.post(
           {
             role: "system",
             content:
-              "You are a helpful study assistant. Summarize the user's notes concisely. Use the .md format to format them, make them look easy to understand and pleasing to see.",
+              "You are a helpful study assistant. Summarize the user's notes concisely. Use the HTML format so it can be displayed in a browser, don't add any extra elements like header or footer, only use the HTML format to put the answer in. Make them look easy to understand and pleasing to see. Use every possible element you can to style the HTML. Don't use classes if you're gonna style the elements, only use inline style attribute.",
           },
           { role: "user", content: `Here are my notes: \n${notesText}\n\n ` },
         ],
