@@ -12,6 +12,8 @@ import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import ListItem from "@tiptap/extension-list-item";
+import { DOMParser as ProseMirrorDOMParser } from "prosemirror-model";
 
 import History from "@tiptap/extension-history";
 import Code from "@tiptap/extension-code";
@@ -54,6 +56,39 @@ const PasteSplitParagraph = Extension.create({
   },
 });
 
+const CleanListItem = ListItem.extend({
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        appendTransaction(transactions, oldState, newState) {
+          const tr = newState.tr;
+
+          newState.doc.descendants((node, pos) => {
+            if (node.type.name === "listItem") {
+              const text = node.textContent.trim();
+
+              // Check if this list item is empty
+              const isEmpty = text === "";
+
+              // Check if user has cursor inside this node
+              const cursorInside =
+                newState.selection.$from.pos >= pos &&
+                newState.selection.$from.pos <= pos + node.nodeSize;
+
+              // Only delete if empty AND user is NOT currently editing it
+              if (isEmpty && !cursorInside) {
+                tr.delete(pos, pos + node.nodeSize);
+              }
+            }
+          });
+
+          return tr.docChanged ? tr : null;
+        },
+      }),
+    ];
+  },
+});
+
 const Video = Node.create({
   name: "video",
   group: "block",
@@ -85,7 +120,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const askAI = async (selectedText, from, to) => {
+  const askAI = async (selectedText, to, prompt) => {
     // const selectedText = editor.state.doc.textBetween(
     //   editor.state.selection.from,
     //   editor.state.selection.to,
@@ -100,7 +135,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
       const res = await fetch(`${API_BASE}/api/ai/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: selectedText }),
+        body: JSON.stringify({ question: selectedText, prompt: prompt }),
         credentials: "include",
       });
 
@@ -110,18 +145,34 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         let clean = DOMPurify.sanitize(decoded, {
           USE_PROFILES: { html: true },
         });
-        // Remove empty <li> elements
+
+        // Remove empty list items again
         const temp = document.createElement("div");
         temp.innerHTML = clean;
         temp.querySelectorAll("li").forEach((li) => {
-          if (!li.textContent.trim()) li.remove();
+          const text = (li.textContent || "").trim();
+          if (!text) li.remove();
         });
         clean = temp.innerHTML;
-        // insert AI answer right below the selection
+
+        // Move insertion point to the end of the current block node
+        const resolvedPos = editorContent.state.doc.resolve(to);
+        const blockEnd = resolvedPos.end(resolvedPos.depth);
+
+        // Validate before inserting
+        const fragment = ProseMirrorDOMParser.fromSchema(editorContent.schema).parse(
+          new DOMParser().parseFromString(clean, "text/html")
+        );
+
+        if (!fragment) {
+          console.warn("Skipping empty AI content");
+          return;
+        }
+
         editorContent
           .chain()
           .focus()
-          .insertContentAt({ from: to + 1, to: to + 1 }, clean)
+          .insertContentAt(blockEnd, fragment)
           .run();
       }
     } catch (err) {
@@ -177,6 +228,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         },
       }),
       Video,
+      CleanListItem,
     ],
     shouldRerenderOnTransaction: true,
     content: content,
@@ -473,10 +525,66 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
               const selectedText = state.doc.textBetween(from, to, " ");
               setQuestion(selectedText);
               console.log("Selected text:", selectedText);
-              askAI(selectedText, from, to);
+              askAI(selectedText, to);
             }}
           >
             Ask AI
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Explain");
+            }}
+          >
+            Explain
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Summarize");
+            }}
+          >
+            Summarize
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Continue");
+            }}
+          >
+            Continue
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Fix Grammar");
+            }}
+          >
+            Fix Grammar
           </button>
         </div>
       </BubbleMenu>
