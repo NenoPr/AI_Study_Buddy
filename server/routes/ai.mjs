@@ -26,6 +26,13 @@ router.post(
       .withMessage("Question cannot be empty")
       .isLength({ min: 3, max: 1000 })
       .withMessage("Question must be between 3 and 1000 characters"),
+    body("prompt")
+      .optional({ nullable: true }) // ← allow missing or null
+      .isString()
+      .withMessage("Prompt must be a string")
+      .trim()
+      .isLength({ min: 3, max: 1000 })
+      .withMessage("Prompt must be between 3 and 1000 characters"),
   ],
   async (req, res) => {
     console.log(req.body.question);
@@ -35,6 +42,18 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const question = req.body.question;
+    let prompt = "";
+    if (req.body.prompt == "Continue") {
+      prompt = req.body.prompt + " writing from the next text:";
+    } else if (req.body.prompt == "Explain") {
+      prompt = req.body.prompt + " the following text:";
+    } else if (req.body.prompt == "Summarize") {
+      prompt = req.body.prompt + " the following text:";
+    } else if (req.body.prompt == "Fix Grammar") {
+      prompt =
+        req.body.prompt +
+        " in the following text, only send the corrected text, nothing else:";
+    }
 
     try {
       // Call OpenAI
@@ -48,9 +67,9 @@ router.post(
           {
             role: "system",
             content:
-              "You are a helpful study assistant. Answer the students questions. Use the HTML format so it can be displayed in a browser, don't add any extra elements like header or footer, only use the HTML format to put the answer in. Make them look easy to understand and pleasing to see. Use every possible element you can to style the HTML. Don't use classes if you're gonna style the elements, only use inline style attribute.",
+              "You are a helpful study assistant. Answer the students questions or do what they ask. Use the HTML format so it can be displayed in a browser, don't add any extra elements like header or footer, only use the HTML format to put the answer in. Make them look easy to understand and pleasing to see. Use every possible element you can to style the HTML. Don't use classes if you're gonna style the elements, only use inline style attribute.",
           },
-          { role: "user", content: `${question}` },
+          { role: "user", content: `${prompt} ${question}` },
         ],
       });
 
