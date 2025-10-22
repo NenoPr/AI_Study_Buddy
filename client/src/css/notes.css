@@ -108,6 +108,7 @@
     gap: 0.5rem;
     flex: 0;
   }
+  
 }
 
 .summary {
@@ -405,6 +406,16 @@ p {
     width: 3.5rem;
     height: 3.5rem;
   }
+  .note-open-content-buttons {
+    position: relative;
+    background: #ffffff; /* same as your editor background */
+    z-index: 100; /* keep it above the editor content */
+    padding: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap; /* optional, if buttons wrap to new line */
+    border-bottom: 1px solid #ccc; /* optional, for visual separation */
+  }
 }
 
 code {
@@ -524,4 +535,21 @@ blockquote {
   border-left: 3px solid gray;
   margin: 1.5rem 0;
   padding-left: 1rem;
+}
+
+.my-bubble-menu {
+  width: 90vw;
+  background-color: #1e1e2f !important;
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+  font-size: .5rem;
+}
+
+.button-AI {
+}
+
+/* Arrow styling */
+.tippy-box[data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #1e1e2f !important;
 }

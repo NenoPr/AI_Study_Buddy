@@ -20,6 +20,7 @@ import Code from "@tiptap/extension-code";
 
 import DOMPurify from "dompurify";
 import he from "he";
+import { Button } from "../ui/button";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -119,6 +120,7 @@ const Video = Node.create({
 export default function RenderNote({ title, setTitle, content, setContent }) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bubbleMode, setBubbleMode] = useState("main");
 
   const askAI = async (selectedText, to, prompt) => {
     // const selectedText = editor.state.doc.textBetween(
@@ -160,20 +162,16 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         const blockEnd = resolvedPos.end(resolvedPos.depth);
 
         // Validate before inserting
-        const fragment = ProseMirrorDOMParser.fromSchema(editorContent.schema).parse(
-          new DOMParser().parseFromString(clean, "text/html")
-        );
+        const fragment = ProseMirrorDOMParser.fromSchema(
+          editorContent.schema
+        ).parse(new DOMParser().parseFromString(clean, "text/html"));
 
         if (!fragment) {
           console.warn("Skipping empty AI content");
           return;
         }
 
-        editorContent
-          .chain()
-          .focus()
-          .insertContentAt(blockEnd, fragment)
-          .run();
+        editorContent.chain().focus().insertContentAt(blockEnd, fragment).run();
       }
     } catch (err) {
       console.error("AI error:", err);
@@ -502,90 +500,139 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         >
           Redo
         </button>
-        <button
-          onClick={askAI}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          {loading ? "Thinking..." : "Ask"}
-        </button>
       </div>
 
       <BubbleMenu
         editor={editorContent}
-        options={{ placement: "top", offset: 6 }}
+        tippyOptions={{
+          interactive: true, // allows clicks inside without closing
+          hideOnClick: false,
+        }}
+        shouldShow={({ editor, state }) => {
+          // make sure editor exists before calling methods
+          if (!editor) return false;
+          return editor.isFocused && !state.selection.empty;
+        }}
+        className="my-bubble-menu"
       >
-        <div style={{ display: "flex", gap: "0.5rem", padding: "0.25rem" }}>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
+        <div
+          style={{ display: "flex", gap: "0.5rem", padding: "0.25rem" }}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          {bubbleMode === "style" && (
+            <button
+              onMouseDown={() => {
+                setBubbleMode("main");
+                e.preventDefault;
+              }}
+            >
+              Success
+            </button>
+          )}
+          {bubbleMode === "main" && (
+            <>
+              <button
+                onMouseDown={(e) => {
+                  setBubbleMode("style");
+                  e.preventDefault;
+                }}
+              >
+                Style
+              </button>
+              <button onMouseDown={() => setBubbleMode("block")}>Block</button>
+              <button onMouseDown={() => setBubbleMode("insert")}>
+                Insert
+              </button>
+              <button onMouseDown={() => setBubbleMode("clear")}>
+                Clear marks
+              </button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setBubbleMode("ai");
+                }}
+              >
+                AI
+              </button>
+            </>
+          )}
+          {bubbleMode === "ai" && (
+            <>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault(); // keeps the selection alive
+                  const { state } = editorContent;
+                  const { from, to } = state.selection;
 
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to);
-            }}
-          >
-            Ask AI
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
+                  const selectedText = state.doc.textBetween(from, to, " ");
+                  setQuestion(selectedText);
+                  console.log("Selected text:", selectedText);
+                  askAI(selectedText, to);
+                }}
+              >
+                Ask AI
+              </button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault(); // keeps the selection alive
+                  const { state } = editorContent;
+                  const { from, to } = state.selection;
 
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Explain");
-            }}
-          >
-            Explain
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
+                  const selectedText = state.doc.textBetween(from, to, " ");
+                  setQuestion(selectedText);
+                  console.log("Selected text:", selectedText);
+                  askAI(selectedText, to, "Explain");
+                }}
+                className="button-AI"
+              >
+                Explain
+              </button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault(); // keeps the selection alive
+                  const { state } = editorContent;
+                  const { from, to } = state.selection;
 
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Summarize");
-            }}
-          >
-            Summarize
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
+                  const selectedText = state.doc.textBetween(from, to, " ");
+                  setQuestion(selectedText);
+                  console.log("Selected text:", selectedText);
+                  askAI(selectedText, to, "Summarize");
+                }}
+              >
+                Summarize
+              </button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault(); // keeps the selection alive
+                  const { state } = editorContent;
+                  const { from, to } = state.selection;
 
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Continue");
-            }}
-          >
-            Continue
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
+                  const selectedText = state.doc.textBetween(from, to, " ");
+                  setQuestion(selectedText);
+                  console.log("Selected text:", selectedText);
+                  askAI(selectedText, to, "Continue");
+                }}
+              >
+                Continue
+              </button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault(); // keeps the selection alive
+                  const { state } = editorContent;
+                  const { from, to } = state.selection;
 
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Fix Grammar");
-            }}
-          >
-            Fix Grammar
-          </button>
+                  const selectedText = state.doc.textBetween(from, to, " ");
+                  setQuestion(selectedText);
+                  console.log("Selected text:", selectedText);
+                  askAI(selectedText, to, "Fix Grammar");
+                }}
+              >
+                Fix Grammar
+              </button>
+              <button onMouseDown={() => setBubbleMode("main")}>Cancel</button>
+            </>
+          )}
         </div>
       </BubbleMenu>
 
