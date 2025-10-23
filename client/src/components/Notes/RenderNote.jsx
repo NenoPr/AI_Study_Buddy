@@ -837,6 +837,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         </>*/}
 
         {/* History */}
+        
         <button
           onClick={() => {
             editorTitle.chain().focus().undo().run();
@@ -844,6 +845,13 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
           }}
         >
           Undo
+        </button>
+        <button
+          onClick={() => {
+            editorContent.chain().focus().setHorizontalRule().run();
+          }}
+        >
+          Separator
         </button>
         <button
           onClick={() => {
