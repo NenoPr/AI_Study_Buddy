@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from "react";
+import { React, useRef, useState, useEffect, useCallback, memo } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
@@ -20,6 +20,7 @@ import Code from "@tiptap/extension-code";
 
 import DOMPurify from "dompurify";
 import he from "he";
+import { Button } from "../ui/button";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -119,6 +120,7 @@ const Video = Node.create({
 export default function RenderNote({ title, setTitle, content, setContent }) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [menuMode, setMenuMode] = useState("main");
 
   const askAI = async (selectedText, to, prompt) => {
     // const selectedText = editor.state.doc.textBetween(
@@ -160,20 +162,16 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         const blockEnd = resolvedPos.end(resolvedPos.depth);
 
         // Validate before inserting
-        const fragment = ProseMirrorDOMParser.fromSchema(editorContent.schema).parse(
-          new DOMParser().parseFromString(clean, "text/html")
-        );
+        const fragment = ProseMirrorDOMParser.fromSchema(
+          editorContent.schema
+        ).parse(new DOMParser().parseFromString(clean, "text/html"));
 
         if (!fragment) {
           console.warn("Skipping empty AI content");
           return;
         }
 
-        editorContent
-          .chain()
-          .focus()
-          .insertContentAt(blockEnd, fragment)
-          .run();
+        editorContent.chain().focus().insertContentAt(blockEnd, fragment).run();
       }
     } catch (err) {
       console.error("AI error:", err);
@@ -205,7 +203,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
       }),
       Underline,
       Highlight,
-      PasteSplitParagraph,
+      //PasteSplitParagraph,
       Table.configure({
         resizable: true, // optional: allows column resizing
       }),
@@ -238,6 +236,376 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
     },
   });
 
+  const BubbleMenuContent = memo(function BubbleMenuContent({
+    editor,
+    menuMode,
+    setMenuMode,
+  }) {
+    const modeRef = useRef(menuMode);
+    const [, forceRender] = useState(0); // local trigger only for this component
+
+    const setMode = useCallback((mode, persist = false) => {
+      modeRef.current = mode;
+      forceRender((n) => n + 1);
+      if (persist) {
+        setMenuMode(mode);
+      }
+    }, []);
+
+    const handleMark = (mark, mode) => {
+      if (mark === "unsetAllMarks") {
+        editor.chain().focus()[`${mark}`]().run();
+      } else if (mark === "clearNodes") {
+        editor.chain().focus()[`${mark}`]().run();
+        editor.chain().focus().unsetMark("code").run();
+      } else if (mark.includes("heading")) {
+        editor
+          .chain()
+          .focus()
+          .setNode("heading", { level: Number(mark.slice(-1)) })
+          .run();
+      } else if (mark === "paragraph") {
+        editor.chain().focus().setParagraph().run();
+      } else if (mark === "image") {
+        editor.chain().focus().setImage({ src: url }).run();
+      } else if (mark === "unsetLink") {
+        editor.chain().focus().unsetLink().run();
+      }
+      editor.chain().focus()[`toggle${mark}`]().run();
+    };
+
+    if (modeRef.current === "main") {
+      return (
+        <div className="bubble-menu-section">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("style")}
+          >
+            Style
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("nodes")}
+          >
+            Nodes
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("headers")}
+          >
+            Headers
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("convert")}
+          >
+            Convert
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("ai")}
+          >
+            AI
+          </button>
+        </div>
+      );
+    }
+
+    if (modeRef.current === "style") {
+      return (
+        <div className="bubble-menu-section">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("Bold")}
+          >
+            Bold
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("Italic")}
+          >
+            Italic
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("Underline")}
+          >
+            Underline
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("Strike")}
+          >
+            Strike
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("Highlight")}
+          >
+            Highlight
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("unsetAllMarks")}
+          >
+            Clear Marks
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("main")}
+          >
+            ← Back
+          </button>
+        </div>
+      );
+    }
+
+    if (modeRef.current === "nodes") {
+      return (
+        <div className="bubble-menu-section">
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+            }}
+            onClick={() => handleMark("BulletList")}
+          >
+            Bullet List
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setMode("nodes");
+            }}
+            onClick={() => handleMark("OrderedList")}
+          >
+            Ordered List
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setMode("nodes");
+            }}
+            onClick={() => handleMark("Code")}
+          >
+            Code Block
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setMode("nodes");
+            }}
+            onClick={() => handleMark("Blockquote")}
+          >
+            Block Quote
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setMode("nodes");
+            }}
+            onClick={() => handleMark("clearNodes")}
+          >
+            Clear Node
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+            }}
+            onClick={() => setMode("main", true)}
+          >
+            ← Back
+          </button>
+        </div>
+      );
+    }
+
+    if (modeRef.current === "headers") {
+      return (
+        <div className="bubble-menu-section">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("heading-1")}
+          >
+            H1
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("heading-2")}
+          >
+            H2
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("heading-3")}
+          >
+            H3
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("heading-4")}
+          >
+            H4
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("heading-5")}
+          >
+            H5
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("heading-6")}
+          >
+            H6
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("paragraph")}
+          >
+            Clear
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("main")}
+          >
+            ← Back
+          </button>
+        </div>
+      );
+    }
+
+    if (modeRef.current === "convert") {
+      return (
+        <div className="bubble-menu-section">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const url = state.doc.textBetween(from, to, " ");
+              editorContent.chain().focus().setLink({ href: url }).run();
+            }}
+          >
+            Link
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleMark("unsetLink")}
+          >
+            Remove Link
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const url = state.doc.textBetween(from, to, " ");
+              editorContent.chain().focus().setImage({ src: url }).run();
+            }}
+          >
+            Link to Image
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("main")}
+          >
+            ← Back
+          </button>
+        </div>
+      );
+    }
+
+    if (modeRef.current === "ai") {
+      return (
+        <div className="bubble-menu-section">
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to);
+            }}
+          >
+            Ask AI
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Explain");
+            }}
+            className="button-AI"
+          >
+            Explain
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Summarize");
+            }}
+          >
+            Summarize
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Continue");
+            }}
+          >
+            Continue
+          </button>
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // keeps the selection alive
+              const { state } = editorContent;
+              const { from, to } = state.selection;
+
+              const selectedText = state.doc.textBetween(from, to, " ");
+              setQuestion(selectedText);
+              console.log("Selected text:", selectedText);
+              askAI(selectedText, to, "Fix Grammar");
+            }}
+          >
+            Fix Grammar
+          </button>
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setMode("main")}
+          >
+            ← Back
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  });
+
   return (
     <div style={{ padding: "1rem" }}>
       {/* Toolbar */}
@@ -245,7 +613,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         style={{ marginBottom: "0.5rem" }}
         className="note-open-content-buttons"
       >
-        <button
+        {/* <button
           onClick={() => {
             editorTitle.chain().focus().toggleUnderline().run();
             editorContent.chain().focus().toggleUnderline().run();
@@ -261,7 +629,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         >
           Highlight
         </button>
-        {/* Marks */}
         <button
           onClick={() => {
             editorTitle.chain().focus().toggleBold().run();
@@ -286,18 +653,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         >
           Strike
         </button>
-        <button
-          onClick={() => {
-            editorTitle.chain().focus().toggleCode().run();
-            editorContent
-              .chain()
-              .focus()
-              .toggleCode("code", { color: "lightblue" })
-              .run();
-          }}
-        >
-          Code
-        </button>
+
         <button
           onClick={() => {
             editorTitle.chain().focus().unsetAllMarks().run();
@@ -306,8 +662,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         >
           Clear Marks
         </button>
-
-        {/* Nodes */}
         <button
           onClick={() => {
             editorTitle.chain().focus().setParagraph().run();
@@ -384,6 +738,18 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         </button>
         <button
           onClick={() => {
+            editorTitle.chain().focus().toggleCode().run();
+            editorContent
+              .chain()
+              .focus()
+              .toggleCode("code", { color: "lightblue" })
+              .run();
+          }}
+        >
+          Code
+        </button>
+        <button
+          onClick={() => {
             editorContent.chain().focus().toggleBulletList().run();
           }}
         >
@@ -398,13 +764,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         </button>
         <button
           onClick={() => {
-            editorContent.chain().focus().toggleCodeBlock().run();
-          }}
-        >
-          Code Block
-        </button>
-        <button
-          onClick={() => {
             editorContent.chain().focus().toggleBlockquote().run();
           }}
         >
@@ -415,14 +774,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
             editorContent.chain().focus().setHorizontalRule().run();
           }}
         >
-          Horizontal Rule
-        </button>
-        <button
-          onClick={() => {
-            editorContent.chain().focus().setHardBreak().run();
-          }}
-        >
-          Hard Break
+          Separator
         </button>
         <button
           onClick={() => {
@@ -432,7 +784,6 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         >
           Clear Nodes
         </button>
-        {/* Links */}
         <>
           <button
             onClick={() => {
@@ -461,9 +812,9 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
             }}
           >
             Image
-          </button>
+          </button> 
 
-          <button
+           <button
             onClick={() => {
               // check if 'video' node exists in schema
               if (!editorContent.schema.nodes.video) {
@@ -482,10 +833,11 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
             }}
           >
             Video
-          </button>
-        </>
+          </button> 
+        </>*/}
 
         {/* History */}
+        
         <button
           onClick={() => {
             editorTitle.chain().focus().undo().run();
@@ -496,96 +848,42 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
         </button>
         <button
           onClick={() => {
+            editorContent.chain().focus().setHorizontalRule().run();
+          }}
+        >
+          Separator
+        </button>
+        <button
+          onClick={() => {
             editorTitle.chain().focus().redo().run();
             editorContent.chain().focus().redo().run();
           }}
         >
           Redo
         </button>
-        <button
-          onClick={askAI}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          {loading ? "Thinking..." : "Ask"}
-        </button>
       </div>
 
       <BubbleMenu
         editor={editorContent}
-        options={{ placement: "top", offset: 6 }}
+        tippyOptions={{
+          duration: 0,
+          hideOnClick: false,
+          interactive: true,
+          placement: "top",
+        }}
+        shouldShow={({ editor, state }) => {
+          // make sure editor exists before calling methods
+          if (!editor) return false;
+          return editor.isFocused && !state.selection.empty;
+        }}
+        className="my-bubble-menu"
       >
-        <div style={{ display: "flex", gap: "0.5rem", padding: "0.25rem" }}>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
-
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to);
-            }}
-          >
-            Ask AI
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
-
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Explain");
-            }}
-          >
-            Explain
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
-
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Summarize");
-            }}
-          >
-            Summarize
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
-
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Continue");
-            }}
-          >
-            Continue
-          </button>
-          <button
-            onMouseDown={(e) => {
-              e.preventDefault(); // keeps the selection alive
-              const { state } = editorContent;
-              const { from, to } = state.selection;
-
-              const selectedText = state.doc.textBetween(from, to, " ");
-              setQuestion(selectedText);
-              console.log("Selected text:", selectedText);
-              askAI(selectedText, to, "Fix Grammar");
-            }}
-          >
-            Fix Grammar
-          </button>
+        <div className="bubble-menu-section">
+          <BubbleMenuContent
+            editor={editorContent}
+            menuMode={menuMode}
+            setMenuMode={setMenuMode}
+          />
         </div>
       </BubbleMenu>
 

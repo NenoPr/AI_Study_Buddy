@@ -8,6 +8,7 @@ import DeleteGroup from "../components/Notes/DeleteGroup";
 import RenameGroup from "@/components/Notes/RenameGroup";
 import ShowNotes from "../components/Notes/ShowNotes";
 import "../css/notes.css";
+import "../css/spinner.css";
 import { useQuizContext } from "../context/QuizContext";
 import { useLoadingContext } from "@/context/loadingContext";
 import { Button } from "@/components/ui/button";

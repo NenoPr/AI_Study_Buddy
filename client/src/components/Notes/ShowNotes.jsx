@@ -445,7 +445,24 @@ export default function ShowNotes({
       )}
       {/* Renders all selected notes  */}
       {loading ? (
-        <div className="flex self-center">Loading...</div>
+        <div className="flex flex-col align-middle justify-center content-center gap-2 self-center">
+          <p>Loading...</p>
+          {/* From Uiverse.io by mrhyddenn  */}
+          <div class="spinner center" style={{alignSelf: "center"}}>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+          </div>
+        </div>
       ) : (
         notes &&
         !noteOpen &&
