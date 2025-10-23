@@ -2,11 +2,14 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useGroupSummary } from "../../context/GroupsSummaryContext";
 import Select from "react-select";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+import DOMPurify from "dompurify";
+import he from "he";
 
 export default function SummarizeGroupResponse({
   creatingNote,
@@ -29,18 +32,27 @@ export default function SummarizeGroupResponse({
     groups,
     setGroups,
   } = useGroupSummary();
+  
+  const [sanitizedHtml, setSanitizedHtml] = useState("");
 
   useEffect(() => {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }, [addNote]);
 
+  useEffect(() => {
+    if (!summarizeGroupsResponse) return;
+    // decode HTML entities -> sanitize -> set state
+    const decoded = he.decode(summarizeGroupsResponse);
+    const clean = DOMPurify.sanitize(decoded, { USE_PROFILES: { html: true } });
+    setSanitizedHtml(clean);
+  }, [summarizeGroupsResponse]);
+
   return (
     <div className="summary">
-      <div class="w-full p-3 border-b-2 border-gray-500">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {summarizeGroupsResponse}
-        </ReactMarkdown>
-      </div>
+      <div
+        class="w-full p-3 border-b-2 border-gray-500"
+        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+      ></div>
       {isCreatingNote ? null : (
         <button class="w-fit ml-3" onClick={() => setIsCreatingNote(true)}>
           Create a new note
@@ -81,7 +93,7 @@ export default function SummarizeGroupResponse({
                 control: (baseStyles, state) => ({
                   ...baseStyles,
                   borderColor: state.isFocused ? "grey" : "red",
-                  width: "20rem"
+                  width: "20rem",
                 }),
               }}
             />
