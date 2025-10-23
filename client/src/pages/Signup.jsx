@@ -7,9 +7,13 @@ const API_BASE = import.meta.env.VITE_API_URL;
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [signUpFail, setSignUpFail] = useState(false);
 
   async function handleSignup(e) {
     e.preventDefault();
+    setLoading(true);
+    setSignUpFail(false);
     try {
       const res = await fetch(`${API_BASE}/api/auth/signup`, {
         method: "POST",
@@ -21,7 +25,9 @@ export default function Signup() {
       alert(data.message || "Signup successful!");
     } catch (err) {
       console.error(err);
-      alert("Signup failed");
+      setSignUpFail(true);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -29,19 +35,30 @@ export default function Signup() {
     <div class="flex justify-center">
       <form onSubmit={handleSignup} class="flex flex-col gap-5 mt-2">
         <h2 class="font-extrabold">Signup</h2>
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button type="submit" variant="outline">Signup</Button>
+
+        {loading ? (
+          <p>Singing in...</p>
+        ) : (
+          <>
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit" variant="outline">
+              Signup
+            </Button>
+
+            {signUpFail && <p>Sign up failed...</p>}
+          </>
+        )}
       </form>
     </div>
   );

@@ -5,18 +5,21 @@ import { Navigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [logFail, setLogFail] = useState(false);
   const { login } = useAuth();
   const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
 
   async function handleLogin(e) {
     e.preventDefault();
+    setLoading(true);
+    setLogFail(false)
     try {
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
@@ -36,7 +39,9 @@ export default function Login() {
       }
     } catch (err) {
       console.error(err);
-      alert("Login failed");
+      setLogFail(true)
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -47,19 +52,29 @@ export default function Login() {
         class="flex flex-col gap-5 w-fit self-center mt-2"
       >
         <h2 class="font-extrabold">Login</h2>
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button type="submit" variant="outline">Login</Button>
+        {loading ? (
+          <p>Logging in...</p>
+        ) : (
+          <>
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit" variant="outline">
+              Login
+            </Button>
+
+            {logFail && (<p>Login Failed...</p>)}
+          </>
+        )}
       </form>
     </div>
   );
