@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+import "../css/spinner.css"
+
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function Signup() {
@@ -37,7 +39,24 @@ export default function Signup() {
         <h2 class="font-extrabold">Signup</h2>
 
         {loading ? (
-          <p>Singing in...</p>
+          <div className="spinner-container">
+            <p>Singing in...</p>
+            {/* From Uiverse.io by mrhyddenn  */}
+            <div class="spinner center">
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+            </div>
+          </div>
         ) : (
           <>
             <Input

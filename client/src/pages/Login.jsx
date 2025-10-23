@@ -5,6 +5,8 @@ import { Navigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+import "../css/spinner.css"
+
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function Login() {
@@ -19,7 +21,7 @@ export default function Login() {
   async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);
-    setLogFail(false)
+    setLogFail(false);
     try {
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
@@ -39,7 +41,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error(err);
-      setLogFail(true)
+      setLogFail(true);
     } finally {
       setLoading(false);
     }
@@ -53,7 +55,24 @@ export default function Login() {
       >
         <h2 class="font-extrabold">Login</h2>
         {loading ? (
-          <p>Logging in...</p>
+          <div className="spinner-container">
+            <p>Logging in...</p>
+            {/* From Uiverse.io by mrhyddenn  */}
+            <div class="spinner center">
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+              <div class="spinner-blade"></div>
+            </div>
+          </div>
         ) : (
           <>
             <Input
@@ -72,7 +91,7 @@ export default function Login() {
               Login
             </Button>
 
-            {logFail && (<p>Login Failed...</p>)}
+            {logFail && <p>Login Failed...</p>}
           </>
         )}
       </form>
