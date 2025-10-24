@@ -103,7 +103,6 @@ export default function ShowNotes({
       alert(err);
     } finally {
       setLoading(false);
-      setIsEditingId("");
     }
   };
 
@@ -126,7 +125,6 @@ export default function ShowNotes({
       alert(err);
     } finally {
       setLoading(false);
-      setIsEditingId("");
       setQuizActive(true);
     }
   };
@@ -344,6 +342,7 @@ export default function ShowNotes({
                 />
               </>
             ) : (
+              loading ? null :
               <>
                 <div className="note-open-buttons">
                   {deletingNoteId == isEditingId ? (
@@ -429,9 +428,28 @@ export default function ShowNotes({
                       >
                         Update notes groups
                       </button>
+                      <hr className="w-4/5 m-auto" />
                     </form>
                   </>
                 )}
+                <div className="flex align-middle justify-center gap-2">
+                  <button
+                    className="w-fit flex align-middle"
+                    onClick={() => {
+                      summarizeNote(isEditingId);
+                    }}
+                  >
+                    Summarize Note
+                  </button>
+                  <button
+                    className="w-fit"
+                    onClick={() => createQuiz(isEditingId)}
+                  >
+                    Quiz Note
+                  </button>
+                </div>
+                <hr className="w-4/5 m-auto" />
+
                 <RenderNote
                   title={title}
                   setTitle={setTitle}
@@ -448,7 +466,7 @@ export default function ShowNotes({
         <div className="flex flex-col align-middle justify-center content-center gap-2 self-center">
           <p>Loading...</p>
           {/* From Uiverse.io by mrhyddenn  */}
-          <div class="spinner center" style={{alignSelf: "center"}}>
+          <div class="spinner center" style={{ alignSelf: "center" }}>
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
@@ -470,13 +488,13 @@ export default function ShowNotes({
         !addNoteBool &&
         !quizActive && (
           <div className="note-container">
-            <div className="note-card">
-              <div
-                className="note-contents note-add"
-                onClick={() => {
-                  setAddNoteBool(true);
-                }}
-              ></div>
+            <div
+              className="note-card note-add-container"
+              onClick={() => {
+                setAddNoteBool(true);
+              }}
+            >
+              <div className="note-contents note-add"></div>
               <div
                 style={{
                   fontSize: "1.5rem",
