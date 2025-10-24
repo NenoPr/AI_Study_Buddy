@@ -233,6 +233,9 @@
     aspect-ratio: 3 / 3;
   }
 }
+.note-add-container {
+  cursor: pointer;
+}
 
 .note-add {
   background: url(/add.svg) no-repeat center center;
@@ -559,15 +562,19 @@ blockquote {
 
 @media only screen and (max-width: 600px) {
   .note-open-content-buttons {
-    display: none;
+    
   }
 
   .my-bubble-menu {
-    max-width: 90vw;
+    position: fixed;
+    top: 10%;
+    left: 0;
+    max-width: 99vw;
     background-color: #1e1e2f !important;
     border-radius: 8px !important;
     padding: 6px 8px !important;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
     font-size: .5rem;
+    z-index: 100;
   }
 }

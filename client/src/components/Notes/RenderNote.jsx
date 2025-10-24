@@ -348,7 +348,7 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleMark("unsetAllMarks")}
           >
-            Clear Marks
+            Clear
           </button>
           <button
             onMouseDown={(e) => e.preventDefault()}
@@ -607,11 +607,10 @@ export default function RenderNote({ title, setTitle, content, setContent }) {
   });
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <div className="p-2 pt-0" >
       {/* Toolbar */}
       <div
-        style={{ marginBottom: "0.5rem" }}
-        className="note-open-content-buttons"
+        className="note-open-content-buttons mb-2"
       >
         {/* <button
           onClick={() => {
